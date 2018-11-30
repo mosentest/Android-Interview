@@ -31,6 +31,17 @@ public class TouchWebView extends WebView implements ILog {
 
     private volatile boolean isFinish = false;
 
+    private SimulationListener simulationListener;
+
+
+    public void setSimulationListener(SimulationListener simulationListener) {
+        this.simulationListener = simulationListener;
+    }
+
+    public void setFinish(boolean finish) {
+        isFinish = finish;
+    }
+
     public TouchWebView(Context context) {
         super(context);
         init();
@@ -143,12 +154,9 @@ public class TouchWebView extends WebView implements ILog {
         synchronized (TouchWebView.class) {
             if (!isFinish) {
                 isFinish = true;
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        doTouch();
-                    }
-                });
+                if (simulationListener != null) {
+                    simulationListener.doSimulation();
+                }
             }
         }
     }
@@ -158,34 +166,5 @@ public class TouchWebView extends WebView implements ILog {
         return "TouchWebView";
     }
 
-    /**
-     * https://www.jianshu.com/p/d83b2caa5249
-     */
-    private void doTouch() {
-        LogUtils.i(getTAG(), "doTouch");
 
-        long downTime = SystemClock.uptimeMillis();
-
-
-        MotionEvent downEvent = MotionEvent.obtain(downTime, downTime,
-                MotionEvent.ACTION_DOWN, 300, 300, 0);
-        downTime += 1000;
-
-
-        MotionEvent moveEvent = MotionEvent.obtain(downTime, downTime,
-                MotionEvent.ACTION_MOVE, 300, 300, 0);
-
-        downTime += 2000;
-
-        MotionEvent upEvent = MotionEvent.obtain(downTime, downTime,
-                MotionEvent.ACTION_UP, 300, 300, 0);
-
-        onTouchEvent(downEvent);
-        onTouchEvent(moveEvent);
-        onTouchEvent(upEvent);
-
-        downEvent.recycle();
-        moveEvent.recycle();
-        upEvent.recycle();
-    }
 }

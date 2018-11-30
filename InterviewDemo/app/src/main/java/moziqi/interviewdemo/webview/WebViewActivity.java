@@ -1,11 +1,18 @@
 package moziqi.interviewdemo.webview;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.MotionEvent;
 
 import moziqi.interviewdemo.R;
 import moziqi.interviewdemo.util.ILog;
+import moziqi.interviewdemo.util.LogUtils;
 
 /**
  * Copyright (C), 2018-2018
@@ -20,7 +27,52 @@ import moziqi.interviewdemo.util.ILog;
 public class WebViewActivity extends AppCompatActivity implements ILog {
 
 
-    private TouchWebView touchWebView;
+    public TouchWebView touchWebView;
+
+    public static int currentPixel = 200;
+
+
+    private int webViewHeight;
+    private int webViewWidth;
+
+
+    private Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (touchWebView != null) {
+                webViewWidth = touchWebView.getWidth();
+                webViewHeight = touchWebView.getHeight();
+                LogUtils.i(getTAG(), "currentPixel>>" + currentPixel);
+                switch (msg.what) {
+                    case 1:
+                        simulationTouch(webViewWidth / 2f, webViewHeight / 2f, currentPixel);
+                        LogUtils.i(getTAG(), "webViewHeight + touchWebView.getScrollY()>>>" + (webViewHeight + touchWebView.getScrollY()));
+                        if (touchWebView.getContentHeight() * touchWebView.getScale() - (touchWebView.getHeight() + touchWebView.getScrollY()) == 0) {
+                            //到底了
+                            currentPixel = 200;
+                            sendEmptyMessageDelayed(2, 500);
+                        } else {
+                            currentPixel += 200;
+                            sendEmptyMessageDelayed(1, 500);
+                        }
+                        break;
+                    case 2:
+                        simulationTouch(webViewWidth / 2f, webViewHeight / 2f, currentPixel);
+                        LogUtils.i(getTAG(), "touchWebView.getScrollY()>>>" + touchWebView.getScrollY());
+                        if (touchWebView.getScrollY() == 0) {
+                            //到顶了
+                            currentPixel = 0;
+                            sendEmptyMessageDelayed(1, 500);
+                        } else {
+                            currentPixel -= 200;
+                            sendEmptyMessageDelayed(2, 500);
+                        }
+                        break;
+                }
+            }
+        }
+    };
 
     @Override
     public String getTAG() {
@@ -33,5 +85,60 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
         setContentView(R.layout.activity_webview);
         touchWebView = findViewById(R.id.webview);
         touchWebView.loadUrl("https://www.cnblogs.com/doit8791/p/7776501.html");
+        touchWebView.setSimulationListener(new SimulationListener() {
+            @Override
+            public void doSimulation() {
+                handler.sendEmptyMessage(1);
+            }
+        });
+    }
+
+    /**
+     * https://www.jianshu.com/p/d83b2caa5249
+     */
+    public void simulationTouch(float x, float y, float pixel) {
+        LogUtils.i(getTAG(), "doTouch");
+
+        long downTime = SystemClock.uptimeMillis();
+        long eventTime = downTime + 100;
+
+        int metaState = 0;
+
+        MotionEvent downEvent = MotionEvent.obtain(downTime, eventTime,
+                MotionEvent.ACTION_DOWN, x, y, metaState);
+
+
+        touchWebView.dispatchTouchEvent(downEvent);
+
+        downTime += 1000;
+        eventTime = downTime + 100;
+
+        MotionEvent moveEvent = MotionEvent.obtain(downTime, eventTime,
+                MotionEvent.ACTION_MOVE, x, y - pixel, metaState);
+
+        touchWebView.dispatchTouchEvent(moveEvent);
+
+        downTime += 2000;
+        eventTime = downTime + 100;
+
+        MotionEvent upEvent = MotionEvent.obtain(downTime, eventTime,
+                MotionEvent.ACTION_UP, x, y - pixel, metaState);
+
+
+        touchWebView.dispatchTouchEvent(upEvent);
+
+        downEvent.recycle();
+        moveEvent.recycle();
+        upEvent.recycle();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        touchWebView.destroy();
+        touchWebView = null;
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        currentPixel = 0;
     }
 }
