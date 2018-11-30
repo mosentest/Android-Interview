@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import moziqi.interviewdemo.recyclerview.RecyclerviewActivity;
 import moziqi.interviewdemo.touchevent.TouchEventActivity;
 import moziqi.interviewdemo.webview.WebViewActivity;
 
@@ -35,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.btn_recyclerview).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, RecyclerviewActivity.class));
+            }
+        });
     }
 
 

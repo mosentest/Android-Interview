@@ -22,7 +22,14 @@
             android:id="@+id/btn_webview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="webview模拟点击" />
+            android:text="webview模拟点击"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="recyclerview复习" />
     </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>

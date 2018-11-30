@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 
 import moziqi.interviewdemo.R;
@@ -46,7 +47,7 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                 LogUtils.i(getTAG(), "currentPixel>>" + currentPixel);
                 switch (msg.what) {
                     case 1:
-                        simulationTouch(webViewWidth / 2f, webViewHeight / 2f, currentPixel);
+                        simulationTouch(0, webViewHeight / 2f, currentPixel);
                         LogUtils.i(getTAG(), "webViewHeight + touchWebView.getScrollY()>>>" + (webViewHeight + touchWebView.getScrollY()));
                         if (touchWebView.getContentHeight() * touchWebView.getScale() - (touchWebView.getHeight() + touchWebView.getScrollY()) == 0) {
                             //到底了
@@ -58,7 +59,7 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                         }
                         break;
                     case 2:
-                        simulationTouch(webViewWidth / 2f, webViewHeight / 2f, currentPixel);
+                        simulationTouch(0, webViewHeight / 2f, currentPixel);
                         LogUtils.i(getTAG(), "touchWebView.getScrollY()>>>" + touchWebView.getScrollY());
                         if (touchWebView.getScrollY() == 0) {
                             //到顶了
@@ -83,12 +84,18 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         touchWebView = findViewById(R.id.webview);
-        touchWebView.loadUrl("https://www.cnblogs.com/doit8791/p/7776501.html");
+        String url = getIntent().getStringExtra("url");
+        //touchWebView.loadUrl("https://www.cnblogs.com/doit8791/p/7776501.html");
+        touchWebView.loadUrl(url);
         touchWebView.setSimulationListener(new SimulationListener() {
             @Override
             public void doSimulation() {
-                handler.sendEmptyMessage(1);
+                handler.sendEmptyMessageDelayed(1, 1000);
             }
         });
     }
@@ -140,5 +147,30 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);
         currentPixel = 0;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (touchWebView != null) {
+            //如果h5页面可能返回，跳转到上个页面
+            if (touchWebView.canGoBack()) {
+                touchWebView.goBack();
+            } else {
+                //不能返回上个页面，直接finish当前Activity
+                finish();
+            }
+        } else {
+            finish();
+        }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

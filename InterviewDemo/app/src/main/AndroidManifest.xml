@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="moziqi.interviewdemo">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -19,8 +19,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".touchevent.TouchEventActivity" />
-        <activity android:name=".touchevent.TouchEventViewGroupActivity"></activity>
-        <activity android:name=".webview.WebViewActivity"></activity>
+        <activity android:name=".touchevent.TouchEventViewGroupActivity" />
+        <activity android:name=".webview.WebViewActivity" />
+        <activity android:name=".recyclerview.RecyclerviewActivity"></activity>
     </application>
 
 </manifest>
