@@ -10,10 +10,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
 
 import moziqi.interviewdemo.R;
 import moziqi.interviewdemo.util.ILog;
 import moziqi.interviewdemo.util.LogUtils;
+import moziqi.interviewdemo.util.TouchUtils;
 
 /**
  * Copyright (C), 2018-2018
@@ -36,6 +38,8 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
     private int webViewHeight;
     private int webViewWidth;
 
+    private TouchUtils touchUtils = new TouchUtils();
+
 
     private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -47,7 +51,7 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                 LogUtils.i(getTAG(), "currentPixel>>" + currentPixel);
                 switch (msg.what) {
                     case 1:
-                        simulationTouch(0, webViewHeight / 2f, currentPixel);
+                        touchUtils.simulationTouch(touchWebView, 0, webViewHeight / 2f, currentPixel);
                         LogUtils.i(getTAG(), "webViewHeight + touchWebView.getScrollY()>>>" + (webViewHeight + touchWebView.getScrollY()));
                         if (touchWebView.getContentHeight() * touchWebView.getScale() - (touchWebView.getHeight() + touchWebView.getScrollY()) == 0) {
                             //到底了
@@ -59,7 +63,7 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                         }
                         break;
                     case 2:
-                        simulationTouch(0, webViewHeight / 2f, currentPixel);
+                        touchUtils.simulationTouch(touchWebView, 0, webViewHeight / 2f, currentPixel);
                         LogUtils.i(getTAG(), "touchWebView.getScrollY()>>>" + touchWebView.getScrollY());
                         if (touchWebView.getScrollY() == 0) {
                             //到顶了
@@ -98,45 +102,6 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                 handler.sendEmptyMessageDelayed(1, 1000);
             }
         });
-    }
-
-    /**
-     * https://www.jianshu.com/p/d83b2caa5249
-     */
-    public void simulationTouch(float x, float y, float pixel) {
-        LogUtils.i(getTAG(), "doTouch");
-
-        long downTime = SystemClock.uptimeMillis();
-        long eventTime = downTime + 100;
-
-        int metaState = 0;
-
-        MotionEvent downEvent = MotionEvent.obtain(downTime, eventTime,
-                MotionEvent.ACTION_DOWN, x, y, metaState);
-
-
-        touchWebView.dispatchTouchEvent(downEvent);
-
-        downTime += 1000;
-        eventTime = downTime + 100;
-
-        MotionEvent moveEvent = MotionEvent.obtain(downTime, eventTime,
-                MotionEvent.ACTION_MOVE, x, y - pixel, metaState);
-
-        touchWebView.dispatchTouchEvent(moveEvent);
-
-        downTime += 2000;
-        eventTime = downTime + 100;
-
-        MotionEvent upEvent = MotionEvent.obtain(downTime, eventTime,
-                MotionEvent.ACTION_UP, x, y - pixel, metaState);
-
-
-        touchWebView.dispatchTouchEvent(upEvent);
-
-        downEvent.recycle();
-        moveEvent.recycle();
-        upEvent.recycle();
     }
 
 

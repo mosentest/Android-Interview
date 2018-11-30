@@ -40,6 +40,7 @@ public class RecyclerviewActivity extends AppCompatActivity {
         dataModels.add(create("腾讯", "https://www.qq.com"));
         dataModels.add(create("微博", "https://weibo.com/login.php"));
         dataModels.add(create("今日头条", "https://www.toutiao.com/"));
+        dataModels.add(create("java锁的概念", "https://www.cnblogs.com/doit8791/p/7776501.html"));
         recyclerviewAdapter = new RecyclerviewAdapter(this, dataModels);
         recyclerviewAdapter.setRecyclerviewItemListener(new RecyclerviewItemListener() {
             @Override
