@@ -4,13 +4,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 
 import moziqi.interviewdemo.R;
 import moziqi.interviewdemo.util.ILog;
@@ -56,10 +52,10 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                         if (touchWebView.getContentHeight() * touchWebView.getScale() - (touchWebView.getHeight() + touchWebView.getScrollY()) == 0) {
                             //到底了
                             currentPixel = 200;
-                            sendEmptyMessageDelayed(2, 500);
+                            sendEmptyMessageDelayed(2, 800);
                         } else {
                             currentPixel += 200;
-                            sendEmptyMessageDelayed(1, 500);
+                            sendEmptyMessageDelayed(1, 800);
                         }
                         break;
                     case 2:
@@ -68,10 +64,10 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                         if (touchWebView.getScrollY() == 0) {
                             //到顶了
                             currentPixel = 0;
-                            sendEmptyMessageDelayed(1, 500);
+                            sendEmptyMessageDelayed(1, 800);
                         } else {
                             currentPixel -= 200;
-                            sendEmptyMessageDelayed(2, 500);
+                            sendEmptyMessageDelayed(2, 800);
                         }
                         break;
                 }

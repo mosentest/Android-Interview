@@ -22,6 +22,8 @@ public class RecyclerviewActivity extends AppCompatActivity {
 
     private RecyclerviewAdapter recyclerviewAdapter;
 
+    private boolean isOpen;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,16 +58,22 @@ public class RecyclerviewActivity extends AppCompatActivity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (recyclerviewAdapter.getItemCount() > 0) {
-            RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
-            if (holder != null && holder instanceof RecyclerviewAdapter.InnerViewHolder) {
-                RecyclerviewAdapter.InnerViewHolder viewHolder = (RecyclerviewAdapter.InnerViewHolder) holder;
-                int[] location = new int[2];
-                viewHolder.itemView.getLocationOnScreen(location);
-                //使用坐标
-                touchUtils.simulationDownTouch(viewHolder.itemView, location[0] / 2f, location[1] / 2f, 0);
+        recyclerView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (recyclerviewAdapter.getItemCount() > 0 && !isOpen) {
+                    RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
+                    if (holder != null && holder instanceof RecyclerviewAdapter.InnerViewHolder) {
+                        RecyclerviewAdapter.InnerViewHolder viewHolder = (RecyclerviewAdapter.InnerViewHolder) holder;
+                        int[] location = new int[2];
+                        viewHolder.itemView.getLocationOnScreen(location);
+                        //使用坐标
+                        touchUtils.simulationDownTouch(viewHolder.itemView, location[0] / 2f, location[1] / 2f, 0);
+                        isOpen = true;
+                    }
+                }
             }
-        }
+        }, 1000);
     }
 
     private DataModel create(String title, String url) {

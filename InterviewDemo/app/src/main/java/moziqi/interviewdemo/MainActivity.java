@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btn_recyclerview;
 
+    private boolean isOpen;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,9 +58,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        touchUtils.simulationDownTouch(btn_recyclerview,
-                btn_recyclerview.getWidth() / 2f,
-                btn_recyclerview.getHeight() / 2, 0);
+        btn_recyclerview.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (isOpen) {
+                    return;
+                }
+                touchUtils.simulationDownTouch(btn_recyclerview,
+                        btn_recyclerview.getWidth() / 2f,
+                        btn_recyclerview.getHeight() / 2, 0);
+                isOpen = true;
+            }
+        }, 1000);
     }
 
     static String str_getAssets = "g2e2t2As2s2e2t2s2";//getAssets

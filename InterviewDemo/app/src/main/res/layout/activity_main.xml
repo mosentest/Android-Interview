@@ -16,7 +16,8 @@
             android:id="@+id/btn_touchevent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="view的事件传递机制" />
+            android:text="view的事件传递机制"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btn_webview"
