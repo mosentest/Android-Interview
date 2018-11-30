@@ -6,6 +6,7 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -13,9 +14,15 @@ import java.lang.reflect.Method;
 
 import moziqi.interviewdemo.recyclerview.RecyclerviewActivity;
 import moziqi.interviewdemo.touchevent.TouchEventActivity;
+import moziqi.interviewdemo.util.TouchUtils;
 import moziqi.interviewdemo.webview.WebViewActivity;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    private TouchUtils touchUtils = new TouchUtils();
+
+    private Button btn_recyclerview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,16 +43,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btn_recyclerview).setOnClickListener(new View.OnClickListener() {
+        btn_recyclerview = findViewById(R.id.btn_recyclerview);
+        btn_recyclerview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, RecyclerviewActivity.class));
             }
         });
-
-
     }
 
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        touchUtils.simulationDownTouch(btn_recyclerview,
+                btn_recyclerview.getWidth() / 2f,
+                btn_recyclerview.getHeight() / 2, 0);
+    }
 
     static String str_getAssets = "g2e2t2As2s2e2t2s2";//getAssets
 

@@ -23,7 +23,7 @@ import moziqi.interviewdemo.R;
  * <author> <time> <version> <desc>
  * 作者姓名 修改时间 版本号 描述
  */
-public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapter.ViewHolder> {
+public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapter.InnerViewHolder> {
 
 
     private Context context;
@@ -39,13 +39,13 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public InnerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.activity_recyclerview_item, parent, false);
-        return new ViewHolder(view);
+        return new InnerViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull InnerViewHolder holder, final int position) {
         holder.title.setText(data.get(position).title);
         holder.url.setText(data.get(position).url);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -68,12 +68,12 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
         this.recyclerviewItemListener = recyclerviewItemListener;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class InnerViewHolder extends RecyclerView.ViewHolder {
 
         private TextView title;
         private TextView url;
 
-        public ViewHolder(View itemView) {
+        public InnerViewHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.title);
             url = itemView.findViewById(R.id.url);

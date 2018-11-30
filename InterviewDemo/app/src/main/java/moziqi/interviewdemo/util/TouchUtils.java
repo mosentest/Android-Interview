@@ -21,7 +21,7 @@ public class TouchUtils implements ILog {
      * https://www.jianshu.com/p/d83b2caa5249
      */
     public void simulationTouch(View view, float x, float y, float pixel) {
-        LogUtils.i(getTAG(), "doTouch");
+        LogUtils.i(getTAG(), "simulationTouch");
 
         long downTime = SystemClock.uptimeMillis();
         long eventTime = downTime + 100;
@@ -53,6 +53,42 @@ public class TouchUtils implements ILog {
 
         downEvent.recycle();
         moveEvent.recycle();
+        upEvent.recycle();
+    }
+
+
+    /**
+     * 只处理按下去和提起来
+     *
+     * @param view
+     * @param x
+     * @param y
+     * @param pixel
+     */
+    public void simulationDownTouch(View view, float x, float y, float pixel) {
+        LogUtils.i(getTAG(), "simulationDownTouch");
+
+        long downTime = SystemClock.uptimeMillis();
+        long eventTime = downTime + 100;
+
+        int metaState = 0;
+
+        MotionEvent downEvent = MotionEvent.obtain(downTime, eventTime,
+                MotionEvent.ACTION_DOWN, x, y, metaState);
+
+
+        view.dispatchTouchEvent(downEvent);
+
+        downTime += 2000;
+        eventTime = downTime + 100;
+
+        MotionEvent upEvent = MotionEvent.obtain(downTime, eventTime,
+                MotionEvent.ACTION_UP, x, y - pixel, metaState);
+
+
+        view.dispatchTouchEvent(upEvent);
+
+        downEvent.recycle();
         upEvent.recycle();
     }
 
