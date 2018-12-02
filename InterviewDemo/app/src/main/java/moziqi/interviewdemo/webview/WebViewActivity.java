@@ -1,5 +1,6 @@
 package moziqi.interviewdemo.webview;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import moziqi.interviewdemo.R;
+import moziqi.interviewdemo.util.Constants;
 import moziqi.interviewdemo.util.ILog;
 import moziqi.interviewdemo.util.LogUtils;
 import moziqi.interviewdemo.util.TouchUtils;
@@ -30,8 +32,10 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
 
     public static int currentPixel = 200;
 
+    private final static long delay_time = 2000;
 
     private int webViewHeight;
+
     private int webViewWidth;
 
     private TouchUtils touchUtils = new TouchUtils();
@@ -52,7 +56,9 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                         if (touchWebView.getContentHeight() * touchWebView.getScale() - (touchWebView.getHeight() + touchWebView.getScrollY()) == 0) {
                             //到底了
                             currentPixel = 200;
-                            sendEmptyMessageDelayed(2, 800);
+                            //sendEmptyMessageDelayed(2, 800);
+                            //改为关闭当前页面
+                            sendEmptyMessageDelayed(3, 800);
                         } else {
                             currentPixel += 200;
                             sendEmptyMessageDelayed(1, 800);
@@ -69,6 +75,11 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
                             currentPixel -= 200;
                             sendEmptyMessageDelayed(2, 800);
                         }
+                        break;
+                    case 3:
+                        //结束activity
+                        setResult(Activity.RESULT_OK);
+                        finish();
                         break;
                 }
             }
@@ -89,13 +100,13 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         touchWebView = findViewById(R.id.webview);
-        String url = getIntent().getStringExtra("url");
+        String url = getIntent().getStringExtra(Constants.IntentCode.rv_url);
         //touchWebView.loadUrl("https://www.cnblogs.com/doit8791/p/7776501.html");
         touchWebView.loadUrl(url);
         touchWebView.setSimulationListener(new SimulationListener() {
             @Override
             public void doSimulation() {
-                handler.sendEmptyMessageDelayed(1, 1000);
+                handler.sendEmptyMessageDelayed(1, delay_time);
             }
         });
     }

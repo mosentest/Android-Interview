@@ -9,6 +9,7 @@
     app:cardCornerRadius="5dp"
     app:cardElevation="3dp"
     app:cardPreventCornerOverlap="true"
+    android:foreground="?android:selectableItemBackground"
     app:cardUseCompatPadding="true"
     tools:context=".recyclerview.RecyclerviewActivity">
 
@@ -16,6 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:foreground="?android:selectableItemBackground"
         android:padding="10dp">
 
         <TextView

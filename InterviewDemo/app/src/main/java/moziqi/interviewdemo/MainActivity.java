@@ -52,12 +52,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, RecyclerviewActivity.class));
             }
         });
-    }
 
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+        //在这里触发
         btn_recyclerview.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -70,6 +67,12 @@ public class MainActivity extends AppCompatActivity {
                 isOpen = true;
             }
         }, 1000);
+    }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
     }
 
     static String str_getAssets = "g2e2t2As2s2e2t2s2";//getAssets
