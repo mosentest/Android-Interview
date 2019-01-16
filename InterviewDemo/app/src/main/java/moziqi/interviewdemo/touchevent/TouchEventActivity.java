@@ -5,6 +5,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RadioButton;
@@ -73,6 +74,10 @@ public class TouchEventActivity extends AppCompatActivity implements ILog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         setContentView(R.layout.activity_touch_event);
         bindViews();
         mToucheventview = findViewById(R.id.toucheventview);
@@ -228,5 +233,14 @@ public class TouchEventActivity extends AppCompatActivity implements ILog {
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);
         handler = null;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

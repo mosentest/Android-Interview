@@ -21,7 +21,11 @@
         <activity android:name=".touchevent.TouchEventActivity" />
         <activity android:name=".touchevent.TouchEventViewGroupActivity" />
         <activity android:name=".webview.WebViewActivity" />
-        <activity android:name=".recyclerview.RecyclerviewActivity"></activity>
+        <activity android:name=".recyclerview.RecyclerviewActivity" />
+        <activity
+            android:name=".svandrv.SvAndRvActivity"
+            android:label="sv嵌套rv"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

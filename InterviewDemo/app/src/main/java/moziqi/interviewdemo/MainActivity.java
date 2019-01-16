@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import moziqi.interviewdemo.recyclerview.RecyclerviewActivity;
+import moziqi.interviewdemo.svandrv.SvAndRvActivity;
 import moziqi.interviewdemo.touchevent.TouchEventActivity;
 import moziqi.interviewdemo.util.TouchUtils;
 import moziqi.interviewdemo.webview.WebViewActivity;
@@ -52,21 +53,27 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, RecyclerviewActivity.class));
             }
         });
+        findViewById(R.id.btn_sv_rv).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, SvAndRvActivity.class));
+            }
+        });
 
 
         //在这里触发
-        btn_recyclerview.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (isOpen) {
-                    return;
-                }
-                touchUtils.simulationDownTouch(btn_recyclerview,
-                        btn_recyclerview.getWidth() / 2f,
-                        btn_recyclerview.getHeight() / 2, 0);
-                isOpen = true;
-            }
-        }, 1000);
+//        btn_recyclerview.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (isOpen) {
+//                    return;
+//                }
+//                touchUtils.simulationDownTouch(btn_recyclerview,
+//                        btn_recyclerview.getWidth() / 2f,
+//                        btn_recyclerview.getHeight() / 2, 0);
+//                isOpen = true;
+//            }
+//        }, 1000);
     }
 
 

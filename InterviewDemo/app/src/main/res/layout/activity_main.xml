@@ -17,20 +17,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="view的事件传递机制"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/btn_webview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="webview模拟点击"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/btn_recyclerview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="recyclerview复习" />
+
+        <Button
+            android:id="@+id/btn_sv_rv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="sv嵌套rv滚动" />
     </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>
