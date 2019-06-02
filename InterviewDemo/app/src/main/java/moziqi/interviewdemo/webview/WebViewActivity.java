@@ -102,7 +102,7 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
         touchWebView = findViewById(R.id.webview);
         String url = getIntent().getStringExtra(Constants.IntentCode.rv_url);
         //touchWebView.loadUrl("https://www.cnblogs.com/doit8791/p/7776501.html");
-        touchWebView.loadUrl(url);
+        touchWebView.loadURL(url);
         touchWebView.setSimulationListener(new SimulationListener() {
             @Override
             public void doSimulation() {

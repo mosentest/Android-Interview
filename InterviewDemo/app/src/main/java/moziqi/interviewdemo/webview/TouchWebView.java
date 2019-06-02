@@ -87,7 +87,7 @@ public class TouchWebView extends WebView implements ILog {
         webSettings.setDisplayZoomControls(false); //隐藏原生的缩放控件
 
         //其他细节操作
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
+//        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
         webSettings.setAllowFileAccess(true); //设置可以访问文件
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
@@ -95,7 +95,7 @@ public class TouchWebView extends WebView implements ILog {
 
 
         //优先使用缓存:
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+//        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         //缓存模式如下：
         //LOAD_CACHE_ONLY: 不使用网络，只读取本地缓存数据
         //LOAD_DEFAULT: （默认）根据cache-control决定是否从网络上取数据。
@@ -103,7 +103,7 @@ public class TouchWebView extends WebView implements ILog {
         //LOAD_CACHE_ELSE_NETWORK，只要本地有，无论是否过期，或者no-cache，都使用缓存中的数据。
 
         //不使用缓存:
-        //webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         webSettings.setDomStorageEnabled(true); // 开启 DOM storage API 功能
         webSettings.setDatabaseEnabled(true);   //开启 database storage API 功能
@@ -167,4 +167,12 @@ public class TouchWebView extends WebView implements ILog {
     }
 
 
+    /**
+     * 加载url地址
+     * @param url
+     */
+    public void loadURL(String url) {
+        isFinish = false;
+        loadUrl(url);
+    }
 }

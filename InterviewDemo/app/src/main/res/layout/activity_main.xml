@@ -37,6 +37,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="sv嵌套rv滚动" />
+
+        <Button
+            android:id="@+id/btnOpenbing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="打开bing" />
     </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>
