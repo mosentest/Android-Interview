@@ -25,7 +25,11 @@ public class LinearLayoutCompat extends LinearLayout implements ILog {
 
 
     private int topY;
-    private int y;
+
+    private float mYDownPos;
+
+    private float mYMovePos;
+    private float mYLastMovePos;
 
     public LinearLayoutCompat(Context context) {
         super(context);
@@ -53,32 +57,47 @@ public class LinearLayoutCompat extends LinearLayout implements ILog {
     }
 
 
-    float startY = 0;
+    private int mScrollY;
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        mScrollY = t;
+    }
+
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+    }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                startY = event.getRawY();
-                LogUtils.i(getTAG(), "onTouchEvent.ACTION_DOWN>>startY:" + startY);
+                mYDownPos = event.getRawY();
+                mYLastMovePos = mYMovePos;
                 break;
             case MotionEvent.ACTION_MOVE:
-                float endY = event.getRawY();
-                LogUtils.i(getTAG(), "onTouchEvent.ACTION_MOVE>>endY:" + endY);
-                LogUtils.i(getTAG(), "onTouchEvent.ACTION_MOVE>>xx:" + (endY - startY));
-                int y = (int) (mScroller.getCurrY() + startY - endY);
-                if (y > topY) {
-                    return super.onTouchEvent(event);
+                mYMovePos = event.getRawY();
+//                LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>mScroller.getFinalY():" + mScroller.getFinalY());
+//                LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>mScroller.getScrollY():" + getScrollY());
+                //LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>mScroller.topY:" + topY);
+                //topY:263
+                int scrolledY = (int) (mYDownPos - mYMovePos);
+
+
+                LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>scrolledY" + scrolledY);
+                LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>getScrollY()" + getScrollY());
+                LogUtils.i(getTAG(), "onInterceptTouchEvent.ACTION_MOVE>>mScrollY" + mScrollY);
+
+                if (mScroller.getFinalY() >= topY) {
+                    LogUtils.i(getTAG(), "onInterceptTouchEvent....");
+                    return super.onInterceptTouchEvent(event);
                 }
-                if (y == getHeight()) {
-                    return super.onTouchEvent(event);
-                }
-                smoothScrollTo(0, y);
                 return true;
             case MotionEvent.ACTION_UP:
-                float upY = event.getRawY();
-                LogUtils.i(getTAG(), "onTouchEvent.ACTION_UP>>upY:" + upY);
                 break;
         }
         return super.onInterceptTouchEvent(event);
@@ -86,6 +105,29 @@ public class LinearLayoutCompat extends LinearLayout implements ILog {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mYDownPos = event.getRawY();
+                mYLastMovePos = mYMovePos;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                mYMovePos = event.getRawY();
+                int scrolledY = (int) (mYDownPos - mYMovePos);
+
+                LogUtils.i(getTAG(), "onTouchEvent.ACTION_MOVE>>scrolledY" + scrolledY);
+//                LogUtils.i(getTAG(), "onTouchEvent.ACTION_MOVE>>getScrollY()" + getScrollY());
+
+                LogUtils.i(getTAG(), "onTouchEvent.ACTION_MOVE>>mScroller.getFinalY()" + mScroller.getFinalY());
+                if (mScroller.getFinalY() >= topY) {
+                    LogUtils.i(getTAG(), "onTouchEvent....333");
+                    return false;
+                }
+                smoothScrollTo(0, scrolledY);
+                return true;
+            case MotionEvent.ACTION_UP:
+                mYMovePos = event.getRawY();
+                break;
+        }
         return super.onTouchEvent(event);
     }
 

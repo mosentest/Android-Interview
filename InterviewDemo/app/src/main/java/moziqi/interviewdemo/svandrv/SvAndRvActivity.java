@@ -16,7 +16,7 @@ public class SvAndRvActivity extends AppCompatActivity implements ILog {
     private NestedScrollViewCompat sv_cc;
 
     private View vOne;
-    private View vTwo;
+    private View view_stop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,14 +24,14 @@ public class SvAndRvActivity extends AppCompatActivity implements ILog {
         setContentView(R.layout.activity_sv_and_rv);
 
         vOne = findViewById(R.id.vOne);
-        vTwo = findViewById(R.id.vTwo);
+        view_stop = findViewById(R.id.view_stop);
         sv_ff = findViewById(R.id.sv_ff);
         sv_cc = findViewById(R.id.sv_cc);
 
         sv_cc.setOnScrollChanged(new NestedScrollViewCompat.OnScrollChanged() {
             @Override
             public void onScroll(int x, int y, int oldx, int oldy) {
-                int top = vTwo.getTop();
+                int top = view_stop.getTop();
                 //LogUtils.i(getTAG(), "vTwo.top>>" + top);
                 //LogUtils.i(getTAG(), "y>>" + y);
                 if (y >= top) {
@@ -47,7 +47,7 @@ public class SvAndRvActivity extends AppCompatActivity implements ILog {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        sv_ff.setTopY(vTwo.getTop());
+        sv_ff.setTopY(view_stop.getTop());
     }
 
     @Override

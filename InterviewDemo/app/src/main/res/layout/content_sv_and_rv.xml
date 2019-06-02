@@ -23,7 +23,7 @@
             android:background="@color/colorPrimaryDark" />
 
         <View
-            android:id="@+id/vTwo"
+            android:id="@+id/view_stop"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@color/colorAccent" />
