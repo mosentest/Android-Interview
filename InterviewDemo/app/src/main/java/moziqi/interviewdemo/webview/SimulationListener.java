@@ -12,4 +12,6 @@ package moziqi.interviewdemo.webview;
  */
 public interface SimulationListener {
     public void doSimulation();
+
+    public void onPageFinished(String url);
 }

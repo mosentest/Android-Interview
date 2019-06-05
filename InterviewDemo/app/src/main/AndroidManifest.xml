@@ -13,7 +13,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".bingsearh.BingSearchActivity"
-            android:label="@string/title_activity_bing_search"></activity>
+            android:label="@string/title_activity_bing_search"
+            android:windowSoftInputMode="stateAlwaysHidden" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

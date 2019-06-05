@@ -2,12 +2,22 @@ package moziqi.interviewdemo.webview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import android.webkit.JsPromptResult;
+import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -33,13 +43,8 @@ public class TouchWebView extends WebView implements ILog {
 
     private SimulationListener simulationListener;
 
-
     public void setSimulationListener(SimulationListener simulationListener) {
         this.simulationListener = simulationListener;
-    }
-
-    public void setFinish(boolean finish) {
-        isFinish = finish;
     }
 
     public TouchWebView(Context context) {
@@ -66,11 +71,25 @@ public class TouchWebView extends WebView implements ILog {
 
 
     private void init() {
+
+        // 在Android 3.0以下 去除远程代码执行漏洞
+        removeJavascriptInterface("searchBoxJavaBridge_");
+        removeJavascriptInterface("accessibility");
+        removeJavascriptInterface("accessibilityTraversal");
+
         //声明WebSettings子类
         WebSettings webSettings = this.getSettings();
 
+
         //如果访问的页面中要与Javascript交互，则webview必须设置支持Javascript
         webSettings.setJavaScriptEnabled(true);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
+        } else {
+
+        }
+
         // 若加载的 html 里有JS 在执行动画等操作，会造成资源浪费（CPU、电量）
         // 在 onStop 和 onResume 里分别把 setJavaScriptEnabled() 给设置成 false 和 true 即可
 
@@ -90,9 +109,28 @@ public class TouchWebView extends WebView implements ILog {
 //        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
         webSettings.setAllowFileAccess(true); //设置可以访问文件
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
-        webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
+        // 加快HTML网页加载完成的速度，等页面finish再加载图片
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webSettings.setLoadsImagesAutomatically(true);
+        } else {
+            webSettings.setLoadsImagesAutomatically(false);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // 5.0 以后的WebView加载的链接为Https开头，但是链接里面的内容，
+            // 比如图片为Http链接，这时候，图片就会加载不出来
+            // 下面两者都可以
+            // Android 5.0上Webview默认不允许加载Http与Https混合内容
+            // ws.setMixedContentMode(ws.getMixedContentMode())
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+        // 4.1以后默认禁止
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            webSettings.setAllowFileAccessFromFileURLs(false);
+            webSettings.setAllowUniversalAccessFromFileURLs(false);
+        }
         webSettings.setDefaultTextEncodingName("utf-8");//设置编码格式
-
+        // 定位相关
+//        webSettings.setGeolocationEnabled(false);
 
         //优先使用缓存:
 //        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
@@ -108,15 +146,21 @@ public class TouchWebView extends WebView implements ILog {
         webSettings.setDomStorageEnabled(true); // 开启 DOM storage API 功能
         webSettings.setDatabaseEnabled(true);   //开启 database storage API 功能
         webSettings.setAppCacheEnabled(true);//开启 Application Caches 功能
-
+//
         String cacheDirPath = getContext().getFilesDir().getAbsolutePath() + APP_CACAHE_DIRNAME;
         webSettings.setAppCachePath(cacheDirPath); //设置  Application Caches 缓存目录
+
+        // 不保存密码，已经废弃了该方法，以后的版本都不会保存密码
+        webSettings.setSavePassword(false);
+
+        webSettings.setUserAgentString(UAHelper.instance(getContext()));
 
 
         //
         setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                isFinish = false;
                 view.loadUrl(url);
                 return true;
             }
@@ -125,6 +169,9 @@ public class TouchWebView extends WebView implements ILog {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 LogUtils.i(getTAG(), "onPageFinished>>>" + url);
+                if (simulationListener != null) {
+                    simulationListener.onPageFinished(url);
+                }
                 inFinish();
             }
 
@@ -133,6 +180,13 @@ public class TouchWebView extends WebView implements ILog {
                 super.onPageStarted(view, url, favicon);
                 LogUtils.i(getTAG(), "onPageStarted>>>" + url);
             }
+
+            @Override
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+//                super.onReceivedSslError(view, handler, error);
+                handler.proceed();
+            }
+
         });
 
 
@@ -140,11 +194,12 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
-                if (newProgress >= 100) {
-                    LogUtils.i(getTAG(), "onProgressChanged>>>" + newProgress);
+                if (newProgress >= 80) {
+                    //LogUtils.i(getTAG(), "onProgressChanged>>>" + newProgress);
                     inFinish();
                 }
             }
+
         });
 
     }
@@ -169,10 +224,34 @@ public class TouchWebView extends WebView implements ILog {
 
     /**
      * 加载url地址
+     *
      * @param url
      */
     public void loadURL(String url) {
         isFinish = false;
         loadUrl(url);
+    }
+
+    public void loadJs(String js) {
+        LogUtils.i(getTAG(), "loadJs.js:" + js);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            evaluateJavascript(js, new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    LogUtils.i(getTAG(), "loadJs.value:" + value);
+                }
+            });
+        } else {
+            loadUrl(js);
+        }
+    }
+
+    /**
+     * 获取页面元素
+     */
+    public void getHtml() {
+        // 获取页面内容
+        loadJs("javascript:window.java_obj.showSource("
+                + "document.getElementsByTagName('html')[0].innerHTML);");
     }
 }

@@ -108,6 +108,11 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
             public void doSimulation() {
                 handler.sendEmptyMessageDelayed(1, delay_time);
             }
+
+            @Override
+            public void onPageFinished(String url) {
+
+            }
         });
     }
 
