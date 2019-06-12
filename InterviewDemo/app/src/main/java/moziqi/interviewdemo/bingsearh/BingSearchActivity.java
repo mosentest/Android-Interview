@@ -35,7 +35,8 @@ public class BingSearchActivity extends AppCompatActivity {
     private TextView webViewUrl;
 
 
-    private final static String BING = "https://www.mbsupersonic.com/3J67C1/4THNTP42/?sub1=%s";
+//    private final static String BING = "https://www.mbsupersonic.com/3J67C1/4THNTP42/?sub1=%s";
+    private final static String BING = "https://www.mbsupersonic.com/3KFRZ6/4THQ8KSM/?sub1=%s";
 //    private final static String BING = "https://cn.bing.com/";
 //    private final static String BING = "https://searchhtt.com/search?q=%s&UPC=Z001";
 
@@ -102,7 +103,7 @@ public class BingSearchActivity extends AppCompatActivity {
                     //模拟点击搜索框
                     touchWebView.loadJs("javascript:"
                             + "document.getElementById('sbBtn').click();");
-                    handler.sendEmptyMessageDelayed(4, 3000);
+                    handler.sendEmptyMessageDelayed(5, 3000);
                     break;
                 case 4:
                     //模拟二次点击搜索框
@@ -118,6 +119,7 @@ public class BingSearchActivity extends AppCompatActivity {
                             + "document.getElementsByClassName('b_algoheader')[" +
                             i +
                             "].getElementsByTagName('a')[0].click();");
+                    handler.removeCallbacksAndMessages(null);
                     break;
             }
         }
