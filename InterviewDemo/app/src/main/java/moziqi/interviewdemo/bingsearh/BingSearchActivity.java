@@ -9,14 +9,24 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.wall.mo.utils.relect.FieldUtils;
+import org.wall.mo.widgets.webview.headerbug.NavigationControllerInvocationHandler;
+import org.wall.mo.widgets.webview.headerbug.WebViewCompat;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import moziqi.interviewdemo.R;
@@ -35,7 +45,7 @@ public class BingSearchActivity extends AppCompatActivity {
     private TextView webViewUrl;
 
 
-//    private final static String BING = "https://www.mbsupersonic.com/3J67C1/4THNTP42/?sub1=%s";
+    //    private final static String BING = "https://www.mbsupersonic.com/3J67C1/4THNTP42/?sub1=%s";
     private final static String BING = "https://www.mbsupersonic.com/3KFRZ6/4THQ8KSM/?sub1=%s";
 //    private final static String BING = "https://cn.bing.com/";
 //    private final static String BING = "https://searchhtt.com/search?q=%s&UPC=Z001";
@@ -50,6 +60,7 @@ public class BingSearchActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         touchWebView = findViewById(R.id.touchWebView);
+        handleLoadUrlPackageName(touchWebView, "", ClassLoader.getSystemClassLoader().getParent());
         webViewUrl = findViewById(R.id.webViewUrl);
 
         touchWebView.loadURL(String.format(BING, "我是地球人"));
@@ -124,6 +135,57 @@ public class BingSearchActivity extends AppCompatActivity {
             }
         }
     };
+
+    /**
+     * @param webView
+     * @param packageName
+     */
+    public static void handleLoadUrlPackageName(WebView webView, String packageName, ClassLoader classLoader) {
+        try {
+            //获取WebView 的 mProvider(android.webkit.WebViewProvider)成员变量
+            //对应的实现类是com.android.webview.chromium.WebViewChromium
+
+//            Field mProviderField = FieldUtils.getDeclaredField(webView.getClass(), "mProvider", true);
+            //读取mProvider的值
+//            Object mProviderObject = FieldUtils.readField(mProviderField, webView, true);
+            Object mProviderObject = FieldUtils.readField(webView, "mProvider", true);
+            //获取WebViewChromium的mAwContents(org.chromium.android_webview.AwContents)成员变量值 ,对应的接口类(org.chromium.content.browser.SmartClipProvider)
+//            Field mAwContentsField = FieldUtils.getDeclaredField(mProviderObject.getClass(), "mAwContents", true);
+            //读取mAwContents的值
+//            Object mAwContentsObject = FieldUtils.readField(mAwContentsField, mProviderObject, true);
+            Field[] fieldProviderObject = mProviderObject.getClass().getFields();
+            Object mAwContentsObject = null;
+            //要找到这个类的org.chromium.android_webview.AwContents
+            for (Field field : fieldProviderObject) {
+                //f,class org.chromium.android_webview.AwContents
+                Log.i("mo", field.getName() + "," + field.getType().getName());
+                if ("org.chromium.android_webview.AwContents".equals(field.getType().getName())) {
+                    mAwContentsObject = FieldUtils.readField(mProviderObject, field.getName(), true);
+                    break;
+                }
+            }
+            Field[] fieldsAwContentsObject = mAwContentsObject.getClass().getFields();
+            Object mNavigationControllerObject = null;
+            Field mNavigationControllerField = null;
+            for (Field field : fieldsAwContentsObject) {
+                Log.i("mo", field.getName() + "," + field.getType().getName());
+                if ("org.chromium.content_public.browser.NavigationController".equals(field.getType().getName())) {
+                    mNavigationControllerObject = FieldUtils.readField(mAwContentsObject, field.getName(), true);
+                    mNavigationControllerField = field;
+                    break;
+                }
+            }
+            //获取AwContents的mNavigationController(org.chromium.content_public.browser.NavigationController)成员变量
+//            Field mNavigationControllerField = FieldUtils.getDeclaredField(mAwContentsObject.getClass(), "mNavigationController", true);
+            //这里做动态代理,对NavigationController接口做动态代理,这是最终的地址
+            Class<?>[] inter = mNavigationControllerObject.getClass().getInterfaces();
+            NavigationControllerInvocationHandler mHandler = new NavigationControllerInvocationHandler(mNavigationControllerObject, packageName);
+            Object mObj = Proxy.newProxyInstance(classLoader, inter, mHandler);
+            FieldUtils.writeField(mNavigationControllerField, mAwContentsObject, mObj);
+        } catch (Exception e) {
+            Log.wtf("mo", e);
+        }
+    }
 
     @Override
     protected void onResume() {

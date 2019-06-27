@@ -4,23 +4,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Build;
-import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputConnection;
-import android.webkit.JsPromptResult;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import moziqi.interviewdemo.util.ILog;
 import moziqi.interviewdemo.util.LogUtils;
@@ -161,7 +155,7 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 isFinish = false;
-                view.loadUrl(url);
+                loadURL(url);
                 return true;
             }
 
@@ -229,7 +223,9 @@ public class TouchWebView extends WebView implements ILog {
      */
     public void loadURL(String url) {
         isFinish = false;
-        loadUrl(url);
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("X-Requested-With", "com.android.default");
+        loadUrl(url, headerMap);
     }
 
     public void loadJs(String js) {
@@ -242,7 +238,7 @@ public class TouchWebView extends WebView implements ILog {
                 }
             });
         } else {
-            loadUrl(js);
+            loadURL(js);
         }
     }
 
