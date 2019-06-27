@@ -4,15 +4,24 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -181,6 +190,42 @@ public class TouchWebView extends WebView implements ILog {
                 handler.proceed();
             }
 
+            @Nullable
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                try {
+                    //适配下https
+                    URL netUrl = new URL(url);
+                    URLConnection urlConnection = netUrl.openConnection();
+                    InputStream inputStream = urlConnection.getInputStream();
+                    WebResourceResponse webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
+                    return webResourceResponse;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Nullable
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                try {
+                    //适配下https
+                    URL netUrl = new URL(request.getUrl().toString());
+                    URLConnection urlConnection = netUrl.openConnection();
+                    InputStream inputStream = urlConnection.getInputStream();
+                    WebResourceResponse webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
+                    return webResourceResponse;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
         });
 
 
@@ -224,7 +269,8 @@ public class TouchWebView extends WebView implements ILog {
     public void loadURL(String url) {
         isFinish = false;
         Map<String, String> headerMap = new HashMap<>();
-        headerMap.put("X-Requested-With", "com.android.default");
+        headerMap.put("X-Requested-With", "com.mo.aaaaa");
+        headerMap.put("x-requested-with", "com.mo.aaaaa");
         loadUrl(url, headerMap);
     }
 

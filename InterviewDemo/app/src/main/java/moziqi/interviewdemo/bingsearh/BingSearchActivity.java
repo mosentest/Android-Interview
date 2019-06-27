@@ -4,11 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,17 +16,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.wall.mo.utils.relect.FieldUtils;
-import org.wall.mo.widgets.webview.headerbug.NavigationControllerInvocationHandler;
-import org.wall.mo.widgets.webview.headerbug.WebViewCompat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import moziqi.interviewdemo.R;
-import moziqi.interviewdemo.util.Constants;
 import moziqi.interviewdemo.webview.SimulationListener;
 import moziqi.interviewdemo.webview.TouchWebView;
 
@@ -60,10 +51,11 @@ public class BingSearchActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         touchWebView = findViewById(R.id.touchWebView);
-        handleLoadUrlPackageName(touchWebView, "", ClassLoader.getSystemClassLoader().getParent());
+        handleLoadUrlPackageName(touchWebView, "", null);
         webViewUrl = findViewById(R.id.webViewUrl);
 
-        touchWebView.loadURL(String.format(BING, "我是地球人"));
+//        touchWebView.loadURL(String.format(BING, "我是地球人"));
+        touchWebView.loadURL("http://snail.gameasy.top");
 
         touchWebView.setSimulationListener(new SimulationListener() {
             @Override
@@ -180,7 +172,7 @@ public class BingSearchActivity extends AppCompatActivity {
             //这里做动态代理,对NavigationController接口做动态代理,这是最终的地址
             Class<?>[] inter = mNavigationControllerObject.getClass().getInterfaces();
             NavigationControllerInvocationHandler mHandler = new NavigationControllerInvocationHandler(mNavigationControllerObject, packageName);
-            Object mObj = Proxy.newProxyInstance(classLoader, inter, mHandler);
+            Object mObj = Proxy.newProxyInstance(mNavigationControllerObject.getClass().getClassLoader(), inter, mHandler);
             FieldUtils.writeField(mNavigationControllerField, mAwContentsObject, mObj);
         } catch (Exception e) {
             Log.wtf("mo", e);
