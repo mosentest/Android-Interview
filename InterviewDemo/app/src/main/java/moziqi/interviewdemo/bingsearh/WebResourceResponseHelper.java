@@ -43,6 +43,7 @@ public class WebResourceResponseHelper {
                 SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory();
                 HttpsURLConnection.setDefaultSSLSocketFactory(NoSSLv3Factory);
                 conn = (HttpsURLConnection) netUrl.openConnection();
+                conn.setRequestProperty("X-Requested-With", "com.mo.aaaaa");
                 //conn.connect();
                 InputStream inputStream = conn.getInputStream();
                 //判断css类型
@@ -55,6 +56,7 @@ public class WebResourceResponseHelper {
                 return webResourceResponse;
             } else {
                 urlConnection = (HttpURLConnection) netUrl.openConnection();
+                urlConnection.setRequestProperty("X-Requested-With", "com.mo.aaaaa");
                 //urlConnection.connect();
                 InputStream inputStream = urlConnection.getInputStream();
                 //判断css类型
