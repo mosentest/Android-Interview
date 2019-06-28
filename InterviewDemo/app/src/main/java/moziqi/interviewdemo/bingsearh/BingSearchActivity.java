@@ -51,7 +51,10 @@ public class BingSearchActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         touchWebView = findViewById(R.id.touchWebView);
-        WebViewCompat.handleLoadUrlPackageName(touchWebView, "");
+
+        touchWebView.setPackageName("com.bi.go");
+        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.bi.go");
+
         webViewUrl = findViewById(R.id.webViewUrl);
 
 //        touchWebView.loadURL(String.format(BING, "我是地球人"));

@@ -48,6 +48,8 @@ public class TouchWebView extends WebView implements ILog {
 
     private SimulationListener simulationListener;
 
+    private String packageName;
+
     public void setSimulationListener(SimulationListener simulationListener) {
         this.simulationListener = simulationListener;
     }
@@ -198,7 +200,7 @@ public class TouchWebView extends WebView implements ILog {
                 if (TextUtils.isEmpty(url)) {
                     return super.shouldInterceptRequest(view, url);
                 }
-                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(url);
+                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), url, packageName);
                 return webResourceResponse;
             }
 
@@ -210,7 +212,7 @@ public class TouchWebView extends WebView implements ILog {
                 if (TextUtils.isEmpty(url)) {
                     return super.shouldInterceptRequest(view, request);
                 }
-                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(request.getUrl().toString());
+                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), request.getUrl().toString(), packageName);
                 return webResourceResponse;
             }
         });
@@ -247,6 +249,9 @@ public class TouchWebView extends WebView implements ILog {
         return "TouchWebView";
     }
 
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
 
     /**
      * 加载url地址

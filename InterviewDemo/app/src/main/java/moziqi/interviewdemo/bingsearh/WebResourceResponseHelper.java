@@ -1,5 +1,6 @@
 package moziqi.interviewdemo.bingsearh;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
@@ -13,6 +14,8 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
+import moziqi.interviewdemo.webview.UAHelper;
+
 /**
  * 作者 : moziqi
  * 邮箱 : 709847739@qq.com
@@ -22,7 +25,7 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class WebResourceResponseHelper {
 
-    public static WebResourceResponse newWebResourceResponse(String url) {
+    public static WebResourceResponse newWebResourceResponse(Context context, String url, String packageName) {
         HttpURLConnection urlConnection = null;
         HttpsURLConnection conn = null;
         try {
@@ -43,7 +46,8 @@ public class WebResourceResponseHelper {
                 SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory();
                 HttpsURLConnection.setDefaultSSLSocketFactory(NoSSLv3Factory);
                 conn = (HttpsURLConnection) netUrl.openConnection();
-                conn.setRequestProperty("X-Requested-With", "com.mo.aaaaa");
+                conn.setRequestProperty("X-Requested-With", packageName);
+                conn.setRequestProperty("User-Agent", UAHelper.instance(context));
                 //conn.connect();
                 InputStream inputStream = conn.getInputStream();
                 //判断css类型
@@ -56,7 +60,8 @@ public class WebResourceResponseHelper {
                 return webResourceResponse;
             } else {
                 urlConnection = (HttpURLConnection) netUrl.openConnection();
-                urlConnection.setRequestProperty("X-Requested-With", "com.mo.aaaaa");
+                urlConnection.setRequestProperty("X-Requested-With", packageName);
+                urlConnection.setRequestProperty("User-Agent", UAHelper.instance(context));
                 //urlConnection.connect();
                 InputStream inputStream = urlConnection.getInputStream();
                 //判断css类型
