@@ -201,7 +201,7 @@ public class TouchWebView extends WebView implements ILog {
                     return super.shouldInterceptRequest(view, url);
                 }
                 WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), url, packageName);
-                return webResourceResponse;
+                return webResourceResponse == null ? webResourceResponse : super.shouldInterceptRequest(view, url);
             }
 
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -213,7 +213,7 @@ public class TouchWebView extends WebView implements ILog {
                     return super.shouldInterceptRequest(view, request);
                 }
                 WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), request.getUrl().toString(), packageName);
-                return webResourceResponse;
+                return webResourceResponse == null ? webResourceResponse : super.shouldInterceptRequest(view, request);
             }
         });
 
@@ -262,7 +262,6 @@ public class TouchWebView extends WebView implements ILog {
         isFinish = false;
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("X-Requested-With", "com.mo.aaaaa");
-        headerMap.put("x-requested-with", "com.mo.aaaaa");
         loadUrl(url, headerMap);
     }
 

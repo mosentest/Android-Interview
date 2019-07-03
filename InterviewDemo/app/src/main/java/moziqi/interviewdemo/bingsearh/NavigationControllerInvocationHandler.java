@@ -47,7 +47,6 @@ public class NavigationControllerInvocationHandler implements InvocationHandler 
                             Map<String, String> headerMap = (Map<String, String>) FieldUtils.readField(args[0], field.getName(), true);
                             if (headerMap != null) {
                                 headerMap.remove("X-Requested-With");
-                                headerMap.remove("x-requested-with");
                                 headerMap.put("X-Requested-With", mPackageName);
                             }
                             FieldUtils.writeField(args[0], field.getName(), headerMap);

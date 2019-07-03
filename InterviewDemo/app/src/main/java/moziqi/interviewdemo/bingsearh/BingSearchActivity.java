@@ -5,20 +5,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.wall.mo.utils.relect.FieldUtils;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.util.Random;
 
 import moziqi.interviewdemo.R;
@@ -52,8 +46,8 @@ public class BingSearchActivity extends AppCompatActivity {
 
         touchWebView = findViewById(R.id.touchWebView);
 
-        touchWebView.setPackageName("com.bi.go");
-        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.bi.go");
+        touchWebView.setPackageName("com.game.go");
+        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.game.go");
 
         webViewUrl = findViewById(R.id.webViewUrl);
 
@@ -69,11 +63,12 @@ public class BingSearchActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(String url) {
                 webViewUrl.setText(url);
-                boolean b = handler.hasMessages(1);
-                if (b) {
-                    handler.removeMessages(1);
-                }
-                handler.sendEmptyMessageDelayed(1, 5000);
+                //注释这个，不知道是不是这里影响
+//                boolean b = handler.hasMessages(1);
+//                if (b) {
+//                    handler.removeMessages(1);
+//                }
+//                handler.sendEmptyMessageDelayed(1, 5000);
             }
         });
         etKey = findViewById(R.id.etKey);
