@@ -1,6 +1,7 @@
 package moziqi.interviewdemo.bingsearh;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.LruCache;
@@ -17,6 +18,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -37,7 +40,8 @@ public class WebResourceResponseHelper {
     /**
      * 这仅仅是内存的，基本没用
      */
-    private final static LruCache<String, InputStream> lruCacheInputStream = new LruCache<>(10 * 1024 * 1024);
+    @Deprecated
+    private final static LruCache<String, WebResourceResponse> responseLruCache = new LruCache<>(128);
 
     /**
      * 我需要缓存到本地目录
@@ -62,7 +66,7 @@ public class WebResourceResponseHelper {
         HttpURLConnection urlConnection = null;
         HttpsURLConnection conn = null;
         try {
-            Log.i("mo", "newWebResourceResponse>" + url);
+            Log.i("mo", Thread.currentThread().getName() + ".newWebResourceResponse>" + url);
             if (TextUtils.isEmpty(url)) {
                 return null;
             }
@@ -93,6 +97,7 @@ public class WebResourceResponseHelper {
                 conn = (HttpsURLConnection) netUrl.openConnection();
                 conn.setRequestProperty("X-Requested-With", packageName);
                 conn.setRequestProperty("User-Agent", UAHelper.instance(context));
+                conn.setRequestProperty("Connection", "Keep-Alive");
                 //conn.connect();
                 InputStream inputStream = conn.getInputStream();
                 //判断css类型
@@ -103,6 +108,7 @@ public class WebResourceResponseHelper {
                 urlConnection = (HttpURLConnection) netUrl.openConnection();
                 urlConnection.setRequestProperty("X-Requested-With", packageName);
                 urlConnection.setRequestProperty("User-Agent", UAHelper.instance(context));
+                urlConnection.setRequestProperty("Connection", "Keep-Alive");
                 //urlConnection.connect();
                 InputStream inputStream = urlConnection.getInputStream();
                 //判断css类型
@@ -127,6 +133,78 @@ public class WebResourceResponseHelper {
             }
         }
         return null;
+    }
+
+    /**
+     * 做不了异步请求，废弃不用
+     * @param context
+     * @param url
+     * @param packageName
+     */
+    @Deprecated
+    private static void asyncWebResourceResponse(final Context context, final String url, final String packageName) {
+        AsyncTask<Void, Integer, WebResourceResponse> asyncTask = new AsyncTask<Void, Integer, WebResourceResponse>() {
+            @Override
+            protected WebResourceResponse doInBackground(Void... args) {
+                HttpURLConnection urlConnection = null;
+                HttpsURLConnection conn = null;
+                try {
+                    //适配下https
+                    URL netUrl = new URL(url);
+                    if ("https".equals(netUrl.getProtocol())) {
+                        //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
+//                        SSLContext sslcontext = SSLContext.getInstance("TLSv1");
+//                        sslcontext.init(null, null, null);
+//                        SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory(sslcontext.getSocketFactory());
+                        //用默認的
+                        SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory();
+                        HttpsURLConnection.setDefaultSSLSocketFactory(NoSSLv3Factory);
+                        conn = (HttpsURLConnection) netUrl.openConnection();
+                        conn.setRequestProperty("X-Requested-With", packageName);
+                        conn.setRequestProperty("User-Agent", UAHelper.instance(context));
+                        //conn.connect();
+                        InputStream inputStream = conn.getInputStream();
+                        //判断css类型
+                        String contentType = conn.getContentType();
+                        Log.i("mo", "https.newWebResourceResponse.contentType>" + contentType);
+                        return getWebResourceResponse(url, inputStream, contentType);
+                    } else {
+                        urlConnection = (HttpURLConnection) netUrl.openConnection();
+                        urlConnection.setRequestProperty("X-Requested-With", packageName);
+                        urlConnection.setRequestProperty("User-Agent", UAHelper.instance(context));
+                        //urlConnection.connect();
+                        InputStream inputStream = urlConnection.getInputStream();
+                        //判断css类型
+                        String contentType = urlConnection.getContentType();
+                        Log.i("mo", "http.newWebResourceResponse.contentType>" + contentType);
+                        return getWebResourceResponse(url, inputStream, contentType);
+                    }
+                } catch (Exception e) {
+
+                } finally {
+                    //流不能关闭
+                    if (conn != null) {
+                        //conn.disconnect();
+                    }
+                    if (urlConnection != null) {
+                        //urlConnection.disconnect();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(WebResourceResponse webResourceResponse) {
+                super.onPostExecute(webResourceResponse);
+                synchronized (WebResourceResponseHelper.class) {
+                    responseLruCache.put(url, webResourceResponse);
+                }
+            }
+        };
+        WebResourceResponse webResourceResponse = responseLruCache.get(url);
+        if (webResourceResponse == null) {
+            asyncTask.executeOnExecutor(Executors.newCachedThreadPool());
+        }
     }
 
     /**
@@ -159,6 +237,7 @@ public class WebResourceResponseHelper {
                 synchronized (WebResourceResponseHelper.class) {
                     OutputStream outputStream = null;
                     DiskLruCache.Editor edit = null;
+                    //这里是写缓存
                     try {
                         Log.i("mo", "getWebResourceResponse.3.1");
                         edit = diskLruCache.edit(md5(url));
@@ -169,20 +248,30 @@ public class WebResourceResponseHelper {
                         }
                         edit.commit();
                         Log.i("mo", "getWebResourceResponse.3.2");
-                        //假如写入成功，里面在缓存取出来
-                        if (diskLruCache != null) {
-                            DiskLruCache.Snapshot snapshot = diskLruCache.get(md5(url));
-                            inputStream = snapshot.getInputStream(0);
-                            webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
+                        //这里是读取缓存
+                        try {
+                            Log.i("mo", "getWebResourceResponse.3.3");
+                            //假如写入成功，里面在缓存取出来
+                            if (diskLruCache != null) {
+                                DiskLruCache.Snapshot snapshot = diskLruCache.get(md5(url));
+                                InputStream cacheInputStream = snapshot.getInputStream(0);
+                                if (cacheInputStream == null) {
+                                    throw new RuntimeException("diskLruCache inputStream is null");
+                                }
+                                webResourceResponse = new WebResourceResponse("text/html", "utf-8", cacheInputStream);
+                            }
+                            Log.i("mo", "getWebResourceResponse.3.4");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.i("mo", "getWebResourceResponse.3.5");
                         }
-                        Log.i("mo", "getWebResourceResponse.3.4");
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (edit != null) {
                             edit.abort();
                         }
-                        Log.i("mo", "getWebResourceResponse.3.5");
                         webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
+                        Log.i("mo", "getWebResourceResponse.3.6");
                     } finally {
                         if (outputStream != null) {
                             outputStream.close();
