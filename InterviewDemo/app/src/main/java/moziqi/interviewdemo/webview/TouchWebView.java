@@ -12,6 +12,7 @@ import android.util.Log;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -171,7 +172,7 @@ public class TouchWebView extends WebView implements ILog {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 isFinish = false;
                 loadURL(url);
-                getReferrer("shouldOverrideUrlLoading");
+                //getReferrer("shouldOverrideUrlLoading");
                 return true;
             }
 
@@ -183,7 +184,7 @@ public class TouchWebView extends WebView implements ILog {
                     simulationListener.onPageFinished(url);
                 }
                 inFinish();
-                getReferrer("onPageFinished");
+                //getReferrer("onPageFinished");
             }
 
             @Override
@@ -207,7 +208,10 @@ public class TouchWebView extends WebView implements ILog {
                         return webResourceResponseEmpty;
                     }
                     WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(
-                            getContext(), url, url, packageName);
+                            getContext(),
+                            url,
+                            null,
+                            packageName);
                     post(new Runnable() {
                         @Override
                         public void run() {
@@ -216,7 +220,7 @@ public class TouchWebView extends WebView implements ILog {
                     });
                     return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
                 } else {
-                    Log.i("mo", Thread.currentThread().getName() + ".shouldInterceptRequest>" + url);
+                    //LogUtils.i(getTAG(), Thread.currentThread().getName() + ".shouldInterceptRequest>" + url);
                     return super.shouldInterceptRequest(view, url);
                 }
 
@@ -235,7 +239,7 @@ public class TouchWebView extends WebView implements ILog {
                     WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(
                             getContext(),
                             url,
-                            url,
+                            null,
                             packageName);
                     post(new Runnable() {
                         @Override
@@ -245,8 +249,27 @@ public class TouchWebView extends WebView implements ILog {
                     });
                     return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
                 } else {
-                    Log.i("mo", Thread.currentThread().getName() + ".shouldInterceptRequest5.0>" + url);
+                    //LogUtils.i(getTAG(), Thread.currentThread().getName() + ".shouldInterceptRequest5.0>" + url);
                     return super.shouldInterceptRequest(view, request);
+                }
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                LogUtils.i(getTAG(), "onReceivedError");
+                if (simulationListener != null) {
+                    simulationListener.onError(request.getUrl().toString());
+                }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                LogUtils.i(getTAG(), "onReceivedError.failingUrl" + failingUrl);
+                if (simulationListener != null) {
+                    simulationListener.onError(failingUrl);
                 }
             }
         });

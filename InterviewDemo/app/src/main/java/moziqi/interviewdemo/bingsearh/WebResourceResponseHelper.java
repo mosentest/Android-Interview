@@ -30,6 +30,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
 import moziqi.interviewdemo.bingsearh.disklrucache.DiskLruCache;
+import moziqi.interviewdemo.util.LogUtils;
 import moziqi.interviewdemo.webview.UAHelper;
 
 /**
@@ -57,37 +58,43 @@ public class WebResourceResponseHelper {
 
 
     private final static CookieManager manager = new CookieManager();
+
+    private static String decodeAdUrl;
     ;
 
     /**
      * @param context
-     * @param url
+     * @param currentUrl
      * @param refererUrl
      * @param packageName
      * @return
      */
-    public static WebResourceResponse newWebResourceResponse(Context context, String url, String refererUrl, String packageName) {
-        try {
-            if (diskLruCache == null) {
-                synchronized (WebResourceResponseHelper.class) {
-                    if (diskLruCache == null) {
-                        diskLruCache = DiskLruCache.open(context.getFilesDir(), 1, 1, 10 * 1024 * 1024);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static WebResourceResponse newWebResourceResponse(Context context,
+                                                             String currentUrl,
+                                                             String refererUrl,
+                                                             String packageName) {
+//        try {
+//            if (diskLruCache == null) {
+//                synchronized (WebResourceResponseHelper.class) {
+//                    if (diskLruCache == null) {
+//                        diskLruCache = DiskLruCache.open(context.getFilesDir(), 1, 1, 10 * 1024 * 1024);
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         HttpURLConnection urlConnection = null;
         HttpsURLConnection conn = null;
         try {
-            Log.i("mo", Thread.currentThread().getName() + ".newWebResourceResponse>" + url);
-            if (TextUtils.isEmpty(url)) {
+            LogUtils.i(getTAG(), Thread.currentThread().getName() + ".newWebResourceResponse.currentUrl>" + currentUrl);
+            LogUtils.i(getTAG(), Thread.currentThread().getName() + ".newWebResourceResponse.decodeAdUrl>" + decodeAdUrl);
+            if (TextUtils.isEmpty(currentUrl)) {
                 return null;
             }
             if (diskLruCache != null) {
                 synchronized (WebResourceResponseHelper.class) {
-                    DiskLruCache.Snapshot snapshot = diskLruCache.get(md5(url));
+                    DiskLruCache.Snapshot snapshot = diskLruCache.get(md5(currentUrl));
                     if (snapshot != null) {
                         InputStream inputStream = snapshot.getInputStream(0);
                         if (inputStream != null) {
@@ -101,7 +108,36 @@ public class WebResourceResponseHelper {
             //通过截取最后一个/判断文件类型，对对应缓存
             //适配下https
             //https://googleads.g.doubleclick.net 替换成  http://jsu.bigbuyres.com
-            URL netUrl = new URL(url);
+            URL netUrl = null;
+            if (!TextUtils.isEmpty(decodeAdUrl) && currentUrl.contains("googleads.g.doubleclick")) {
+                //http://jsu.bigbuyres.com/share/aaaa.ap
+                //https://googleads.g.doubleclick.net/shar/aaaa.ap
+                URL tempUrl = new URL(currentUrl);
+                String host = tempUrl.getHost();
+                LogUtils.i(getTAG(), "host>" + host);
+                URL tempAdUrl = new URL(decodeAdUrl);
+                String hostAd = tempAdUrl.getHost();
+                LogUtils.i(getTAG(), "hostAd>" + hostAd);
+                String replaceURL = currentUrl.replace(host, hostAd);
+                //替换协议问题
+                if ("https".equals(tempAdUrl.getProtocol())) {
+                    if ("https".equals(tempUrl.getProtocol())) {
+                        replaceURL = replaceURL.replace("https://", "https://");
+                    } else {
+                        replaceURL = replaceURL.replace("http://", "https://");
+                    }
+                } else {
+                    if ("https".equals(tempUrl.getProtocol())) {
+                        replaceURL = replaceURL.replace("https://", "http://");
+                    } else {
+                        replaceURL = replaceURL.replace("http://", "http://");
+                    }
+                }
+                LogUtils.i(getTAG(), "replaceURL>" + replaceURL);
+                netUrl = new URL(replaceURL);
+            } else {
+                netUrl = new URL(currentUrl);
+            }
             if ("https".equals(netUrl.getProtocol())) {
                 //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
 //                SSLContext sslcontext = SSLContext.getInstance("TLSv1");
@@ -122,10 +158,10 @@ public class WebResourceResponseHelper {
                 if (!TextUtils.isEmpty(refererUrl)) {
                     int i = refererUrl.lastIndexOf("adurl=");
                     if (i > 0) {
-                        String adUrl = refererUrl.substring(i + "adurl=".length());
-                        String decode = URLDecoder.decode(adUrl);
-                        Log.i("mo", "https.newWebResourceResponse.adUrl>" + decode);
-                        conn.setRequestProperty("Referer", decode);
+                        String mAdUrl = refererUrl.substring(i + "adurl=".length());
+                        decodeAdUrl = URLDecoder.decode(mAdUrl);
+                        LogUtils.i(getTAG(), "https.newWebResourceResponse.decodeAdUrl>" + decodeAdUrl);
+                        conn.setRequestProperty("Referer", decodeAdUrl);
                     }
                 }
                 //conn.connect();
@@ -133,15 +169,15 @@ public class WebResourceResponseHelper {
                 //判断css类型
                 String contentType = conn.getContentType();
                 int code = conn.getResponseCode();
-                Log.i("mo", "https.newWebResourceResponse.code>" + code);
-                Log.i("mo", "https.newWebResourceResponse.contentType>" + contentType);
+                LogUtils.i(getTAG(), "https.newWebResourceResponse.code>" + code);
+                LogUtils.i(getTAG(), "https.newWebResourceResponse.contentType>" + contentType);
                 if (302 == code) {
                     String redirectUrl = conn.getHeaderField("Location");
                     if (redirectUrl != null && !redirectUrl.isEmpty()) {
-                        return newWebResourceResponse(context, redirectUrl, url, packageName);
+                        return newWebResourceResponse(context, redirectUrl, currentUrl, packageName);
                     }
                 }
-                return getWebResourceResponse(url, inputStream, contentType);
+                return getWebResourceResponse(currentUrl, inputStream, contentType);
             } else {
                 urlConnection = (HttpURLConnection) netUrl.openConnection();
                 urlConnection.setInstanceFollowRedirects(false);
@@ -155,10 +191,10 @@ public class WebResourceResponseHelper {
                 if (!TextUtils.isEmpty(refererUrl)) {
                     int i = refererUrl.lastIndexOf("adurl=");
                     if (i > 0) {
-                        String adUrl = refererUrl.substring(i + "adurl=".length());
-                        String decode = URLDecoder.decode(adUrl);
-                        Log.i("mo", "http.newWebResourceResponse.adUrl>" + decode);
-                        urlConnection.setRequestProperty("Referer", decode);
+                        String mAdUrl = refererUrl.substring(i + "adurl=".length());
+                        decodeAdUrl = URLDecoder.decode(mAdUrl);
+                        LogUtils.i(getTAG(), "http.newWebResourceResponse.decodeAdUrl>" + decodeAdUrl);
+                        urlConnection.setRequestProperty("Referer", decodeAdUrl);
                     }
                 }
                 //urlConnection.connect();
@@ -166,15 +202,15 @@ public class WebResourceResponseHelper {
                 //判断css类型
                 String contentType = urlConnection.getContentType();
                 int code = urlConnection.getResponseCode();
-                Log.i("mo", "http.newWebResourceResponse.code>" + code);
-                Log.i("mo", "http.newWebResourceResponse.contentType>" + contentType);
+                LogUtils.i(getTAG(), "http.newWebResourceResponse.code>" + code);
+                LogUtils.i(getTAG(), "http.newWebResourceResponse.contentType>" + contentType);
                 if (302 == code) {
                     String redirectUrl = urlConnection.getHeaderField("Location");
                     if (redirectUrl != null && !redirectUrl.isEmpty()) {
-                        return newWebResourceResponse(context, redirectUrl, url, packageName);
+                        return newWebResourceResponse(context, redirectUrl, currentUrl, packageName);
                     }
                 }
-                return getWebResourceResponse(url, inputStream, contentType);
+                return getWebResourceResponse(currentUrl, inputStream, contentType);
             }
 
         } catch (MalformedURLException e) {
@@ -195,6 +231,10 @@ public class WebResourceResponseHelper {
         return null;
     }
 
+    private static String getTAG() {
+        return "WebResourceResponseHelper";
+    }
+
 
     public static void cookie() {
         manager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
@@ -211,13 +251,13 @@ public class WebResourceResponseHelper {
      * @throws IOException
      */
     private static WebResourceResponse getWebResourceResponse(String url, InputStream inputStream, String contentType) throws IOException {
-        Log.i("mo", "getWebResourceResponse.1");
+        LogUtils.i(getTAG(), "getWebResourceResponse.1");
         if (TextUtils.isEmpty(contentType)) {
             return new WebResourceResponse("text/html", "utf-8", inputStream);
         }
         WebResourceResponse webResourceResponse = null;
         if (contentType.startsWith("text/css")) {
-            Log.i("mo", "getWebResourceResponse.2 css");
+            LogUtils.i(getTAG(), "getWebResourceResponse.2 css");
             //css样式就不缓存了，不好判断来管理
             webResourceResponse = new WebResourceResponse("text/css", "utf-8", inputStream);
         } else if (contentType.contains("jpeg")
@@ -225,7 +265,7 @@ public class WebResourceResponseHelper {
                 || contentType.contains("application/javascript")
                 || contentType.contains("text/javascript")
         ) {
-            Log.i("mo", "getWebResourceResponse.3 ");
+            LogUtils.i(getTAG(), "getWebResourceResponse.3 ");
             //图片类缓存
             if (diskLruCache != null) {
                 synchronized (WebResourceResponseHelper.class) {
@@ -233,7 +273,7 @@ public class WebResourceResponseHelper {
                     DiskLruCache.Editor edit = null;
                     //这里是写缓存
                     try {
-                        Log.i("mo", "getWebResourceResponse.3.1");
+                        LogUtils.i(getTAG(), "getWebResourceResponse.3.1");
                         edit = diskLruCache.edit(md5(url));
                         outputStream = edit.newOutputStream(0);
                         int b;
@@ -241,10 +281,10 @@ public class WebResourceResponseHelper {
                             outputStream.write(b);
                         }
                         edit.commit();
-                        Log.i("mo", "getWebResourceResponse.3.2");
+                        LogUtils.i(getTAG(), "getWebResourceResponse.3.2");
                         //这里是读取缓存
                         try {
-                            Log.i("mo", "getWebResourceResponse.3.3");
+                            LogUtils.i(getTAG(), "getWebResourceResponse.3.3");
                             //假如写入成功，里面在缓存取出来
                             if (diskLruCache != null) {
                                 DiskLruCache.Snapshot snapshot = diskLruCache.get(md5(url));
@@ -254,10 +294,10 @@ public class WebResourceResponseHelper {
                                 }
                                 webResourceResponse = new WebResourceResponse("text/html", "utf-8", cacheInputStream);
                             }
-                            Log.i("mo", "getWebResourceResponse.3.4");
+                            LogUtils.i(getTAG(), "getWebResourceResponse.3.4");
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Log.i("mo", "getWebResourceResponse.3.5");
+                            LogUtils.i(getTAG(), "getWebResourceResponse.3.5");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -265,7 +305,7 @@ public class WebResourceResponseHelper {
                             edit.abort();
                         }
                         webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
-                        Log.i("mo", "getWebResourceResponse.3.6");
+                        LogUtils.i(getTAG(), "getWebResourceResponse.3.6");
                     } finally {
                         if (outputStream != null) {
                             outputStream.close();
@@ -273,11 +313,11 @@ public class WebResourceResponseHelper {
                     }
                 }
             } else {
-                Log.i("mo", "getWebResourceResponse.4 other");
+                LogUtils.i(getTAG(), "getWebResourceResponse.4 other");
                 webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
             }
         } else {
-            Log.i("mo", "getWebResourceResponse.5 other");
+            LogUtils.i(getTAG(), "getWebResourceResponse.5 other");
             webResourceResponse = new WebResourceResponse("text/html", "utf-8", inputStream);
         }
         return webResourceResponse;

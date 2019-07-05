@@ -16,6 +16,7 @@ import android.widget.TextView;
 import java.util.Random;
 
 import moziqi.interviewdemo.R;
+import moziqi.interviewdemo.util.LogUtils;
 import moziqi.interviewdemo.webview.SimulationListener;
 import moziqi.interviewdemo.webview.TouchWebView;
 
@@ -64,11 +65,20 @@ public class BingSearchActivity extends AppCompatActivity {
             public void onPageFinished(String url) {
                 webViewUrl.setText(url);
                 //注释这个，不知道是不是这里影响
-//                boolean b = handler.hasMessages(1);
+//                boolean b = handler.hasMessages(5);
 //                if (b) {
-//                    handler.removeMessages(1);
+//                    handler.removeMessages(5);
 //                }
-//                handler.sendEmptyMessageDelayed(1, 5000);
+//                handler.sendEmptyMessageDelayed(5, 5000);
+            }
+
+            @Override
+            public void onError(String url) {
+//                boolean b = handler.hasMessages(7);
+//                if (b) {
+//                    handler.removeMessages(7);
+//                }
+//                handler.sendEmptyMessageDelayed(7, 5000);
             }
         });
         etKey = findViewById(R.id.etKey);
@@ -93,6 +103,7 @@ public class BingSearchActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            LogUtils.i("mo", "msg.what>>" + msg.what);
             switch (msg.what) {
                 case 1:
                     //模拟点击搜索框
@@ -122,12 +133,20 @@ public class BingSearchActivity extends AppCompatActivity {
                 case 5:
                     //注入js点击1-3的链接
                     Random random = new Random();
-                    int i = random.nextInt(3);
+                    int i = random.nextInt(5);
                     touchWebView.loadJs("javascript:"
                             + "document.getElementsByClassName('b_algoheader')[" +
                             i +
                             "].getElementsByTagName('a')[0].click();");
-                    handler.removeCallbacksAndMessages(null);
+                    handler.sendEmptyMessageDelayed(6,5000);
+                    break;
+                case 6:
+                    while (touchWebView.canGoBack()) {
+                        touchWebView.goBack();
+                    }
+                    break;
+                case 7:
+                    touchWebView.reload();
                     break;
             }
         }

@@ -14,4 +14,6 @@ public interface SimulationListener {
     public void doSimulation();
 
     public void onPageFinished(String url);
+
+    public void onError(String url);
 }

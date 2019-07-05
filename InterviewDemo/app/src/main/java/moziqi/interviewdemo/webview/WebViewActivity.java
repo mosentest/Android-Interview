@@ -113,6 +113,11 @@ public class WebViewActivity extends AppCompatActivity implements ILog {
             public void onPageFinished(String url) {
 
             }
+
+            @Override
+            public void onError(String url) {
+
+            }
         });
     }
 
