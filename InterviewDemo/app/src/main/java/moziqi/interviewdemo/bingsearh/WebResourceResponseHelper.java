@@ -13,12 +13,17 @@ import java.io.OutputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.Executor;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -40,8 +45,10 @@ public class WebResourceResponseHelper {
     /**
      * 这仅仅是内存的，基本没用
      */
-    @Deprecated
-    private final static LruCache<String, WebResourceResponse> responseLruCache = new LruCache<>(128);
+    //@Deprecated
+    //private final static LruCache<String, WebResourceResponse> webResourceResponsesLru = new LruCache<>(128);
+
+    //private final static LruCache<String, String> cookiesLru = new LruCache<>(128);
 
     /**
      * 我需要缓存到本地目录
@@ -49,9 +56,17 @@ public class WebResourceResponseHelper {
     private volatile static DiskLruCache diskLruCache = null;
 
 
-    private volatile static CookieManager manager;
+    private final static CookieManager manager = new CookieManager();
+    ;
 
-    public static WebResourceResponse newWebResourceResponse(Context context, String url, String packageName) {
+    /**
+     * @param context
+     * @param url
+     * @param refererUrl
+     * @param packageName
+     * @return
+     */
+    public static WebResourceResponse newWebResourceResponse(Context context, String url, String refererUrl, String packageName) {
         try {
             if (diskLruCache == null) {
                 synchronized (WebResourceResponseHelper.class) {
@@ -85,6 +100,7 @@ public class WebResourceResponseHelper {
             //提高效率的话，需要缓存文件流，通过LRU方式实现css,js,图片样式缓存
             //通过截取最后一个/判断文件类型，对对应缓存
             //适配下https
+            //https://googleads.g.doubleclick.net 替换成  http://jsu.bigbuyres.com
             URL netUrl = new URL(url);
             if ("https".equals(netUrl.getProtocol())) {
                 //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
@@ -95,25 +111,69 @@ public class WebResourceResponseHelper {
                 SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory();
                 HttpsURLConnection.setDefaultSSLSocketFactory(NoSSLv3Factory);
                 conn = (HttpsURLConnection) netUrl.openConnection();
+                conn.setInstanceFollowRedirects(false);
                 conn.setRequestProperty("X-Requested-With", packageName);
                 conn.setRequestProperty("User-Agent", UAHelper.instance(context));
                 conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.setRequestProperty("Pragma", "no-cache");
+                conn.setRequestProperty("Cache-Control", "no-cache");
+                conn.setRequestProperty("Host", netUrl.getHost());
+                conn.setRequestProperty("Accept", "*/*");
+                if (!TextUtils.isEmpty(refererUrl)) {
+                    int i = refererUrl.lastIndexOf("adurl=");
+                    if (i > 0) {
+                        String adUrl = refererUrl.substring(i + "adurl=".length());
+                        String decode = URLDecoder.decode(adUrl);
+                        Log.i("mo", "https.newWebResourceResponse.adUrl>" + decode);
+                        conn.setRequestProperty("Referer", decode);
+                    }
+                }
                 //conn.connect();
                 InputStream inputStream = conn.getInputStream();
                 //判断css类型
                 String contentType = conn.getContentType();
+                int code = conn.getResponseCode();
+                Log.i("mo", "https.newWebResourceResponse.code>" + code);
                 Log.i("mo", "https.newWebResourceResponse.contentType>" + contentType);
+                if (302 == code) {
+                    String redirectUrl = conn.getHeaderField("Location");
+                    if (redirectUrl != null && !redirectUrl.isEmpty()) {
+                        return newWebResourceResponse(context, redirectUrl, url, packageName);
+                    }
+                }
                 return getWebResourceResponse(url, inputStream, contentType);
             } else {
                 urlConnection = (HttpURLConnection) netUrl.openConnection();
+                urlConnection.setInstanceFollowRedirects(false);
                 urlConnection.setRequestProperty("X-Requested-With", packageName);
                 urlConnection.setRequestProperty("User-Agent", UAHelper.instance(context));
                 urlConnection.setRequestProperty("Connection", "Keep-Alive");
+                urlConnection.setRequestProperty("Pragma", "no-cache");
+                urlConnection.setRequestProperty("Cache-Control", "no-cache");
+                urlConnection.setRequestProperty("Host", netUrl.getHost());
+                urlConnection.setRequestProperty("Accept", "*/*");
+                if (!TextUtils.isEmpty(refererUrl)) {
+                    int i = refererUrl.lastIndexOf("adurl=");
+                    if (i > 0) {
+                        String adUrl = refererUrl.substring(i + "adurl=".length());
+                        String decode = URLDecoder.decode(adUrl);
+                        Log.i("mo", "http.newWebResourceResponse.adUrl>" + decode);
+                        urlConnection.setRequestProperty("Referer", decode);
+                    }
+                }
                 //urlConnection.connect();
                 InputStream inputStream = urlConnection.getInputStream();
                 //判断css类型
                 String contentType = urlConnection.getContentType();
+                int code = urlConnection.getResponseCode();
+                Log.i("mo", "http.newWebResourceResponse.code>" + code);
                 Log.i("mo", "http.newWebResourceResponse.contentType>" + contentType);
+                if (302 == code) {
+                    String redirectUrl = urlConnection.getHeaderField("Location");
+                    if (redirectUrl != null && !redirectUrl.isEmpty()) {
+                        return newWebResourceResponse(context, redirectUrl, url, packageName);
+                    }
+                }
                 return getWebResourceResponse(url, inputStream, contentType);
             }
 
@@ -135,76 +195,10 @@ public class WebResourceResponseHelper {
         return null;
     }
 
-    /**
-     * 做不了异步请求，废弃不用
-     * @param context
-     * @param url
-     * @param packageName
-     */
-    @Deprecated
-    private static void asyncWebResourceResponse(final Context context, final String url, final String packageName) {
-        AsyncTask<Void, Integer, WebResourceResponse> asyncTask = new AsyncTask<Void, Integer, WebResourceResponse>() {
-            @Override
-            protected WebResourceResponse doInBackground(Void... args) {
-                HttpURLConnection urlConnection = null;
-                HttpsURLConnection conn = null;
-                try {
-                    //适配下https
-                    URL netUrl = new URL(url);
-                    if ("https".equals(netUrl.getProtocol())) {
-                        //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
-//                        SSLContext sslcontext = SSLContext.getInstance("TLSv1");
-//                        sslcontext.init(null, null, null);
-//                        SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory(sslcontext.getSocketFactory());
-                        //用默認的
-                        SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory();
-                        HttpsURLConnection.setDefaultSSLSocketFactory(NoSSLv3Factory);
-                        conn = (HttpsURLConnection) netUrl.openConnection();
-                        conn.setRequestProperty("X-Requested-With", packageName);
-                        conn.setRequestProperty("User-Agent", UAHelper.instance(context));
-                        //conn.connect();
-                        InputStream inputStream = conn.getInputStream();
-                        //判断css类型
-                        String contentType = conn.getContentType();
-                        Log.i("mo", "https.newWebResourceResponse.contentType>" + contentType);
-                        return getWebResourceResponse(url, inputStream, contentType);
-                    } else {
-                        urlConnection = (HttpURLConnection) netUrl.openConnection();
-                        urlConnection.setRequestProperty("X-Requested-With", packageName);
-                        urlConnection.setRequestProperty("User-Agent", UAHelper.instance(context));
-                        //urlConnection.connect();
-                        InputStream inputStream = urlConnection.getInputStream();
-                        //判断css类型
-                        String contentType = urlConnection.getContentType();
-                        Log.i("mo", "http.newWebResourceResponse.contentType>" + contentType);
-                        return getWebResourceResponse(url, inputStream, contentType);
-                    }
-                } catch (Exception e) {
 
-                } finally {
-                    //流不能关闭
-                    if (conn != null) {
-                        //conn.disconnect();
-                    }
-                    if (urlConnection != null) {
-                        //urlConnection.disconnect();
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(WebResourceResponse webResourceResponse) {
-                super.onPostExecute(webResourceResponse);
-                synchronized (WebResourceResponseHelper.class) {
-                    responseLruCache.put(url, webResourceResponse);
-                }
-            }
-        };
-        WebResourceResponse webResourceResponse = responseLruCache.get(url);
-        if (webResourceResponse == null) {
-            asyncTask.executeOnExecutor(Executors.newCachedThreadPool());
-        }
+    public static void cookie() {
+        manager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
+        CookieHandler.setDefault(manager);
     }
 
     /**
@@ -309,16 +303,4 @@ public class WebResourceResponseHelper {
     }
 
 
-    public static void cookie() {
-        if (manager == null) {
-            synchronized (WebResourceResponseHelper.class) {
-                if (manager == null) {
-                    manager = new CookieManager();
-                }
-            }
-        }
-        //设置cookie策略，只接受与你对话服务器的cookie，而不接收Internet上其它服务器发送的cookie
-        manager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
-        CookieHandler.setDefault(manager);
-    }
 }

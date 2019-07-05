@@ -46,8 +46,8 @@ public class BingSearchActivity extends AppCompatActivity {
 
         touchWebView = findViewById(R.id.touchWebView);
 
-        touchWebView.setPackageName("com.game.go");
-        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.game.go");
+        touchWebView.setPackageName("com.game.fire");
+        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.game.fire");
 
         webViewUrl = findViewById(R.id.webViewUrl);
 
@@ -78,6 +78,13 @@ public class BingSearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 touchWebView.loadURL(String.format(BING, "我是地球人"));
+            }
+        });
+
+        findViewById(R.id.btnShouldInterceptRequest).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                touchWebView.setShouldInterceptRequest(!touchWebView.isShouldInterceptRequest());
             }
         });
     }

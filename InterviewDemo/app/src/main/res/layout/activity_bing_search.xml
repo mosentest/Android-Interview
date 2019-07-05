@@ -40,6 +40,13 @@
         android:padding="10dp"
         android:textSize="14sp" />
 
+    <Button
+        android:id="@+id/btnShouldInterceptRequest"
+        android:layout_width="match_parent"
+        android:text="shouldInterceptRequest"
+        android:layout_height="wrap_content" />
+
+
     <moziqi.interviewdemo.webview.TouchWebView
         android:id="@+id/touchWebView"
         android:layout_width="match_parent"

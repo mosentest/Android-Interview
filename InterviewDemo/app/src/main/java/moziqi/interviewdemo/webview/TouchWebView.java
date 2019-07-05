@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -50,6 +51,8 @@ public class TouchWebView extends WebView implements ILog {
 
     private String packageName;
 
+    private boolean isShouldInterceptRequest = true;
+
     public void setSimulationListener(SimulationListener simulationListener) {
         this.simulationListener = simulationListener;
     }
@@ -68,7 +71,6 @@ public class TouchWebView extends WebView implements ILog {
         super(context, attrs, defStyleAttr);
         init();
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public TouchWebView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
@@ -169,6 +171,7 @@ public class TouchWebView extends WebView implements ILog {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 isFinish = false;
                 loadURL(url);
+                getReferrer("shouldOverrideUrlLoading");
                 return true;
             }
 
@@ -180,6 +183,7 @@ public class TouchWebView extends WebView implements ILog {
                     simulationListener.onPageFinished(url);
                 }
                 inFinish();
+                getReferrer("onPageFinished");
             }
 
             @Override
@@ -197,11 +201,25 @@ public class TouchWebView extends WebView implements ILog {
             @Nullable
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                if (TextUtils.isEmpty(url)) {
+                if (isShouldInterceptRequest()) {
+                    WebResourceResponse webResourceResponseEmpty = new WebResourceResponse("text/html", "utf-8", null);
+                    if (TextUtils.isEmpty(url)) {
+                        return webResourceResponseEmpty;
+                    }
+                    WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(
+                            getContext(), url, url, packageName);
+                    post(new Runnable() {
+                        @Override
+                        public void run() {
+                            getReferrer("shouldInterceptRequest");
+                        }
+                    });
+                    return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
+                } else {
+                    Log.i("mo", Thread.currentThread().getName() + ".shouldInterceptRequest>" + url);
                     return super.shouldInterceptRequest(view, url);
                 }
-                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), url, packageName);
-                return webResourceResponse == null ? webResourceResponse : super.shouldInterceptRequest(view, url);
+
             }
 
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -209,11 +227,27 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (TextUtils.isEmpty(url)) {
+                if (isShouldInterceptRequest()) {
+                    WebResourceResponse webResourceResponseEmpty = new WebResourceResponse("text/html", "utf-8", null);
+                    if (TextUtils.isEmpty(url)) {
+                        return super.shouldInterceptRequest(view, request);
+                    }
+                    WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(
+                            getContext(),
+                            url,
+                            url,
+                            packageName);
+                    post(new Runnable() {
+                        @Override
+                        public void run() {
+                            getReferrer("shouldInterceptRequest5.0");
+                        }
+                    });
+                    return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
+                } else {
+                    Log.i("mo", Thread.currentThread().getName() + ".shouldInterceptRequest5.0>" + url);
                     return super.shouldInterceptRequest(view, request);
                 }
-                WebResourceResponse webResourceResponse = WebResourceResponseHelper.newWebResourceResponse(getContext(), request.getUrl().toString(), packageName);
-                return webResourceResponse == null ? webResourceResponse : super.shouldInterceptRequest(view, request);
             }
         });
 
@@ -225,6 +259,7 @@ public class TouchWebView extends WebView implements ILog {
                 if (newProgress >= 80) {
                     //LogUtils.i(getTAG(), "onProgressChanged>>>" + newProgress);
                     inFinish();
+                    getReferrer("onProgressChanged");
                 }
             }
 
@@ -285,6 +320,26 @@ public class TouchWebView extends WebView implements ILog {
     public void getHtml() {
         // 获取页面内容
         loadJs("javascript:window.java_obj.showSource("
-                + "document.getElementsByTagName('html')[0].innerHTML);");
+                + "document.getElementsByTagName('html')[0].innerHTML" +
+                ");");
+    }
+
+    /**
+     * 获取Referrer
+     */
+    public void getReferrer(String from) {
+        LogUtils.i(getTAG(), from + ">>>getReferrer");
+        // 获取页面内容
+        loadJs("javascript:window.java_obj.showReferrer("
+                + "document.referrer" +
+                ");");
+    }
+
+    public boolean isShouldInterceptRequest() {
+        return isShouldInterceptRequest;
+    }
+
+    public void setShouldInterceptRequest(boolean shouldInterceptRequest) {
+        isShouldInterceptRequest = shouldInterceptRequest;
     }
 }

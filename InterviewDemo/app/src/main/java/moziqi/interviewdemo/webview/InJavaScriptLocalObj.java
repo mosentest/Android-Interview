@@ -23,4 +23,9 @@ class InJavaScriptLocalObj {
     public void showDescription(String str) {
         LogUtils.i("====>showDescription=" + str);
     }
+
+    @JavascriptInterface
+    public void showReferrer(String str) {
+        LogUtils.i("====>showReferrer=" + str);
+    }
 }
