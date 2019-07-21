@@ -43,6 +43,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="打开bing" />
+
+        <Button
+            android:id="@+id/btnSubscribe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="打开Subscribe" />
     </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>

@@ -52,7 +52,7 @@ public class TouchWebView extends WebView implements ILog {
 
     private String packageName;
 
-    private boolean isShouldInterceptRequest = true;
+    private boolean isShouldInterceptRequest = false;
 
     public void setSimulationListener(SimulationListener simulationListener) {
         this.simulationListener = simulationListener;
@@ -258,7 +258,7 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                LogUtils.i(getTAG(), "onReceivedError");
+                LogUtils.i(getTAG(), "onReceivedError5.0");
                 if (simulationListener != null) {
                     simulationListener.onError(request.getUrl().toString());
                 }
@@ -353,9 +353,9 @@ public class TouchWebView extends WebView implements ILog {
     public void getReferrer(String from) {
         LogUtils.i(getTAG(), from + ">>>getReferrer");
         // 获取页面内容
-        loadJs("javascript:window.java_obj.showReferrer("
-                + "document.referrer" +
-                ");");
+//        loadJs("javascript:window.java_obj.showReferrer("
+//                + "document.referrer" +
+//                ");");
     }
 
     public boolean isShouldInterceptRequest() {

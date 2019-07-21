@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 
 import moziqi.interviewdemo.bingsearh.BingSearchActivity;
 import moziqi.interviewdemo.recyclerview.RecyclerviewActivity;
+import moziqi.interviewdemo.subscribe.SubscribeActivity;
 import moziqi.interviewdemo.svandrv.SvAndRvActivity;
 import moziqi.interviewdemo.touchevent.TouchEventActivity;
 import moziqi.interviewdemo.util.TouchUtils;
@@ -65,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, BingSearchActivity.class));
+            }
+        });
+        findViewById(R.id.btnSubscribe).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, SubscribeActivity.class));
             }
         });
 
