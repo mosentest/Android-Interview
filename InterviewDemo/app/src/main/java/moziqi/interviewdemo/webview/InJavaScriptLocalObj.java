@@ -1,6 +1,7 @@
 package moziqi.interviewdemo.webview;
 
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import moziqi.interviewdemo.util.LogUtils;
 
@@ -14,9 +15,22 @@ import moziqi.interviewdemo.util.LogUtils;
 
 class InJavaScriptLocalObj {
 
+    private TouchWebView touchWebView;
+
+    public InJavaScriptLocalObj(TouchWebView touchWebView) {
+        this.touchWebView = touchWebView;
+    }
+
     @JavascriptInterface
     public void showSource(String html) {
         LogUtils.i("====>showSource=" + html);
+        touchWebView.getSource(html);
+    }
+
+    @JavascriptInterface
+    public void readyState(String readyState) {
+        LogUtils.i("====>readyState=" + readyState);
+        touchWebView.readyState(readyState);
     }
 
     @JavascriptInterface

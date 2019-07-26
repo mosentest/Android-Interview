@@ -48,10 +48,19 @@ public class TouchWebView extends WebView implements ILog {
 
     private volatile boolean isFinish = false;
 
+    /**
+     * 回调接口
+     */
     private SimulationListener simulationListener;
 
+    /**
+     * 设置包名
+     */
     private String packageName;
 
+    /**
+     * 是否开启拦截
+     */
     private boolean isShouldInterceptRequest = false;
 
     public void setSimulationListener(SimulationListener simulationListener) {
@@ -95,7 +104,7 @@ public class TouchWebView extends WebView implements ILog {
         webSettings.setJavaScriptEnabled(true);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
+            addJavascriptInterface(new InJavaScriptLocalObj(this), "java_obj");
         } else {
 
         }
@@ -170,9 +179,7 @@ public class TouchWebView extends WebView implements ILog {
         setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                isFinish = false;
-                loadURL(url);
-                //getReferrer("shouldOverrideUrlLoading");
+                loadURLInner(url);
                 return true;
             }
 
@@ -184,7 +191,6 @@ public class TouchWebView extends WebView implements ILog {
                     simulationListener.onPageFinished(url);
                 }
                 inFinish();
-                //getReferrer("onPageFinished");
             }
 
             @Override
@@ -212,12 +218,6 @@ public class TouchWebView extends WebView implements ILog {
                             url,
                             null,
                             packageName);
-                    post(new Runnable() {
-                        @Override
-                        public void run() {
-                            getReferrer("shouldInterceptRequest");
-                        }
-                    });
                     return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
                 } else {
                     //LogUtils.i(getTAG(), Thread.currentThread().getName() + ".shouldInterceptRequest>" + url);
@@ -241,12 +241,6 @@ public class TouchWebView extends WebView implements ILog {
                             url,
                             null,
                             packageName);
-                    post(new Runnable() {
-                        @Override
-                        public void run() {
-                            getReferrer("shouldInterceptRequest5.0");
-                        }
-                    });
                     return webResourceResponse == null ? webResourceResponseEmpty : webResourceResponse;
                 } else {
                     //LogUtils.i(getTAG(), Thread.currentThread().getName() + ".shouldInterceptRequest5.0>" + url);
@@ -258,17 +252,23 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                LogUtils.i(getTAG(), "onReceivedError5.0");
-                if (simulationListener != null) {
-                    simulationListener.onError(request.getUrl().toString());
+                String url = request.getUrl().toString();
+                if (request.isForMainFrame() || url.equals(getUrl())) {
+                    if (simulationListener != null && url.startsWith("http")) {
+                        LogUtils.i(getTAG(), "onReceivedError5.0");
+                        simulationListener.onError(url);
+                    }
                 }
             }
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
-                LogUtils.i(getTAG(), "onReceivedError.failingUrl" + failingUrl);
-                if (simulationListener != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    return;
+                }
+                if (simulationListener != null && failingUrl.startsWith("http")) {
+                    LogUtils.i(getTAG(), "onReceivedError.failingUrl" + failingUrl);
                     simulationListener.onError(failingUrl);
                 }
             }
@@ -279,10 +279,10 @@ public class TouchWebView extends WebView implements ILog {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
-                if (newProgress >= 80) {
+                if (newProgress >= 100) {
                     //LogUtils.i(getTAG(), "onProgressChanged>>>" + newProgress);
                     inFinish();
-                    getReferrer("onProgressChanged");
+                    //getReferrer("onProgressChanged");
                 }
             }
 
@@ -291,13 +291,11 @@ public class TouchWebView extends WebView implements ILog {
     }
 
     private void inFinish() {
-        LogUtils.i(getTAG(), "inFinish.thread_name:" + Thread.currentThread().getName());
-        synchronized (TouchWebView.class) {
-            if (!isFinish) {
-                isFinish = true;
-                if (simulationListener != null) {
-                    simulationListener.doSimulation();
-                }
+        if (!isFinish) {
+            isFinish = true;
+            LogUtils.i(getTAG(), "inFinish.thread_name:" + Thread.currentThread().getName());
+            if (simulationListener != null) {
+                simulationListener.doSimulation();
             }
         }
     }
@@ -317,9 +315,18 @@ public class TouchWebView extends WebView implements ILog {
      * @param url
      */
     public void loadURL(String url) {
-        isFinish = false;
+        loadURLInner(url);
+        this.isFinish = false;
+    }
+
+    /**
+     * 内部方法
+     *
+     * @param url
+     */
+    private void loadURLInner(String url) {
         Map<String, String> headerMap = new HashMap<>();
-        headerMap.put("X-Requested-With", "com.mo.aaaaa");
+        headerMap.put("X-Requested-With", packageName);
         loadUrl(url, headerMap);
     }
 
@@ -333,7 +340,7 @@ public class TouchWebView extends WebView implements ILog {
                 }
             });
         } else {
-            loadURL(js);
+            loadURLInner(js);
         }
     }
 
@@ -342,9 +349,14 @@ public class TouchWebView extends WebView implements ILog {
      */
     public void getHtml() {
         // 获取页面内容
-        loadJs("javascript:window.java_obj.showSource("
-                + "document.getElementsByTagName('html')[0].innerHTML" +
-                ");");
+        loadJs("javascript:window.java_obj.showSource(document.getElementsByTagName('html')[0].innerHTML);");
+    }
+
+    /**
+     * 获取页面是否执行
+     */
+    public void getLoadCompete() {
+        loadJs("javascript:window.java_obj.readyState(document.readyState);");
     }
 
     /**
@@ -353,9 +365,7 @@ public class TouchWebView extends WebView implements ILog {
     public void getReferrer(String from) {
         LogUtils.i(getTAG(), from + ">>>getReferrer");
         // 获取页面内容
-//        loadJs("javascript:window.java_obj.showReferrer("
-//                + "document.referrer" +
-//                ");");
+        loadJs("javascript:window.java_obj.showReferrer(document.referrer);");
     }
 
     public boolean isShouldInterceptRequest() {
@@ -364,5 +374,13 @@ public class TouchWebView extends WebView implements ILog {
 
     public void setShouldInterceptRequest(boolean shouldInterceptRequest) {
         isShouldInterceptRequest = shouldInterceptRequest;
+    }
+
+    public void getSource(String html) {
+
+    }
+
+    public void readyState(String readyState) {
+
     }
 }
