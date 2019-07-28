@@ -199,25 +199,8 @@ public class BingSearchActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        ViewParent parent = touchWebView.getParent();
-        if (parent != null && parent instanceof ViewGroup) {
-            ((ViewGroup) parent).removeView(touchWebView);
-        }
-        touchWebView.stopLoading();
-        // 退出时调用此方法，移除绑定的服务，否则某些特定系统会报错
-        touchWebView.getSettings().setJavaScriptEnabled(false);
-        touchWebView.clearHistory();
-        touchWebView.clearView();
-        touchWebView.removeAllViews();
-        try {
-            touchWebView.destroy();
-        } catch (Throwable ex) {
-            //to do
-        }
-        touchWebView = null;
-//        handler.removeCallbacksAndMessages(null);
-
         webViewHelper.onDestroy();
+        touchWebView = null;
         super.onDestroy();
     }
 

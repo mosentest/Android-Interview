@@ -62,11 +62,19 @@ public class SmsObserver extends ContentObserver {
 
 
     public static void registerContentObserver(Context context, SmsObserver observer) {
-        Uri uri = Uri.parse("content://sms");
-        context.getContentResolver().registerContentObserver(uri, true, observer);
+        try {
+            Uri uri = Uri.parse("content://sms");
+            context.getContentResolver().registerContentObserver(uri, true, observer);
+        } catch (Exception e) {
+
+        }
     }
 
     public static void unregisterContentObserver(Context context, SmsObserver observer) {
-        context.getContentResolver().unregisterContentObserver(observer);
+        try {
+            context.getContentResolver().unregisterContentObserver(observer);
+        } catch (Exception e) {
+
+        }
     }
 }

