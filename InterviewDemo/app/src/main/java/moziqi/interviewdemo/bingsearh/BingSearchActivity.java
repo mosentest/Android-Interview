@@ -65,19 +65,19 @@ public class BingSearchActivity extends AppCompatActivity {
         BlockingQueue<WebViewHelper.WebData> webData = new ArrayBlockingQueue<>(3);
         //String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))
         webData.add(webViewHelper.createWebData(0, String.format(BING, "我是地球人"), Arrays.asList(
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM)
         )));
         webData.add(webViewHelper.createWebData(1, String.format(BING, "我是中国人"), Arrays.asList(
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM)
         )));
         webData.add(webViewHelper.createWebData(0, String.format(BING, "我是外国人"), Arrays.asList(
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
+                webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM)
         )));
         webViewHelper.setData(webData).start();
 

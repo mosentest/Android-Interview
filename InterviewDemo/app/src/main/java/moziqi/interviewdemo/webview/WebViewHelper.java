@@ -218,18 +218,23 @@ public class WebViewHelper {
                         }
                         localWebView.getLoadCompete();
                         String jsContent = null;
+                        Log.i("mo", String.format("doJs poll.type is %d", poll.type));
                         switch (poll.type) {
                             case 0:
                                 //是不处理
                                 jsContent = poll.js;
                                 break;
-                            case 1:
+                            case JsObj.JS_TYPE_PHONE:
                                 //获取联系电话号码
-                                String.format(poll.js, phoneNum);
+                                jsContent = String.format(poll.js, phoneNum);
                                 break;
-                            case 2:
+                            case JsObj.JS_TYPE_CODE:
                                 //获取短信验证码
-                                String.format(poll.js, code);
+                                jsContent = String.format(poll.js, code);
+                                break;
+                            case JsObj.JS_TYPE_RANDOM:
+                                //设置随机数,暂时在能0-4范围内
+                                jsContent = String.format(poll.js, getRandom(5));
                                 break;
                             default:
                                 //默认不处理
