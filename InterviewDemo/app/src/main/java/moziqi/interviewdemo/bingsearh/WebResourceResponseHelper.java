@@ -1,10 +1,7 @@
 package moziqi.interviewdemo.bingsearh;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Log;
-import android.util.LruCache;
 import android.webkit.WebResourceResponse;
 
 import java.io.IOException;
@@ -13,18 +10,12 @@ import java.io.OutputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
