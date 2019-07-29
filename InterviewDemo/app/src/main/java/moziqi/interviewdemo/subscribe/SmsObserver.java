@@ -49,7 +49,9 @@ public class SmsObserver extends ContentObserver {
         if (c != null) {
             if (c.moveToFirst()) {
                 String body = c.getString(c.getColumnIndex("body"));//获取短信内容
-                Pattern pattern = Pattern.compile("(\\d{6})");//正则表达式   连续6位数字
+//                Pattern pattern = Pattern.compile("(\\d{6})");//正则表达式   连续6位数字
+                //改为这样
+                Pattern pattern = Pattern.compile("\\d{3,6}(?!\\d)");//正则表达式   3-6位之间
                 Matcher matcher = pattern.matcher(body);
                 if (matcher.find()) {
                     code = matcher.group(0);

@@ -92,14 +92,18 @@ public class WebViewHelper {
         } else {
             //设置随机电话号码
             StringBuilder phoneNumBuilder = new StringBuilder();
-            for (int i = 0; i < 11; i++) {
+            //9-11位
+            int len = 9 + getRandom(3);
+            for (int i = 0; i < len; i++) {
                 phoneNumBuilder.append(getRandom(9));
             }
             this.phoneNum = phoneNumBuilder.toString();
         }
         //设置随机验证码
         StringBuilder codeBuilder = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
+        //随机码长度范围 验证码3-6位数
+        int len = 3 + getRandom(4);
+        for (int i = 0; i < len; i++) {
             codeBuilder.append(getRandom(9));
         }
         code = codeBuilder.toString();

@@ -56,13 +56,17 @@ public class SubscribeActivity extends AppCompatActivity {
                         //先点击首页的按钮
                         webViewHelper.createJsObj("javascript:for(var i=0;i<document.getElementsByName('button').length;i++){document.getElementsByName('button')[i].click();}"),
                         //在输入框获取焦点
-                        webViewHelper.createJsObj("javascript:document.getElementById('msisdn').focus();", 2000),
-                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('inputbox')[0].focus();", 2000),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').focus();", 15 * 1000),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].focus();", 15 * 1000),
                         //填充电话号码
-                        webViewHelper.createJsObj("javascript:document.getElementById('msisdn').value='%s';", 5000, WebViewHelper.JsObj.JS_TYPE_PHONE),
-                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('inputbox')[0].value='%s';", 15000, WebViewHelper.JsObj.JS_TYPE_PHONE),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').value=‘%s’;", 15 * 1000, WebViewHelper.JsObj.JS_TYPE_PHONE),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].value='%s';", 15 * 1000, WebViewHelper.JsObj.JS_TYPE_PHONE),
                         //点击
-                        webViewHelper.createJsObj("javascript:document.getElementsByClassName('continue')[0].click();")
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();"),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();"),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();"),
+                        //点击这个
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('text-red2')[0].click();")
                 )));
         webViewHelper.setData(webData).start();
     }
