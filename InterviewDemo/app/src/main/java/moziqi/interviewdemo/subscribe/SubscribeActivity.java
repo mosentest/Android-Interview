@@ -48,6 +48,14 @@ public class SubscribeActivity extends AppCompatActivity {
             "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();",
             "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('continue')[0].click();",
             "javascript:document.getElementById('mpay').contentWindow.document.getElementsByClassName('text-red2')[0].click();",
+            //2019-8-12
+            "javascript:for(var i=0;i<document.getElementsByClassName('button').length;i++){document.getElementsByClassName('button')[i].click();}",
+            "javascript:document.getElementById('m').focus();",
+            "javascript:document.getElementById('m').value='%s';", //这个js类型为1，需要填充电话号码
+            "javascript:document.getElementById('single_msisdn_submit').click();",
+            "javascript:document.getElementById('send-sms').click();",
+            "javascript:for(var i=0;i<document.getElementsByClassName('button').length;i++){document.getElementsByClassName('button')[i].click();}",
+            //2019-8-12
     };
 
     @Override
