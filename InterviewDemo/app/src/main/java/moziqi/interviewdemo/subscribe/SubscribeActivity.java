@@ -56,6 +56,12 @@ public class SubscribeActivity extends AppCompatActivity {
             "javascript:document.getElementById('send-sms').click();",
             "javascript:for(var i=0;i<document.getElementsByClassName('button').length;i++){document.getElementsByClassName('button')[i].click();}",
             //2019-8-12
+
+            //新的url地址 2019-8-19
+            "javascript:document.getElementById('number').focus();",
+            "javascript:document.getElementById('number').value=document.getElementById('number').value+'%s';",//这个js类型为1，需要填充电话号码
+            "javascript:for(var i=0;i<document.getElementsByClassName('btn').length;i++){document.getElementsByClassName('btn')[i].click();};",
+            "javascript:document.getElementById('and').click();",
     };
 
     @Override
