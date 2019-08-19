@@ -257,6 +257,9 @@ public class TouchWebView extends WebView implements ILog {
                     if (simulationListener != null && url.startsWith("http")) {
                         LogUtils.i(getTAG(), "onReceivedError5.0");
                         simulationListener.onError(url);
+                        isFinish = true;
+                    } else {
+                        //
                     }
                 }
             }
@@ -270,6 +273,9 @@ public class TouchWebView extends WebView implements ILog {
                 if (simulationListener != null && failingUrl.startsWith("http")) {
                     LogUtils.i(getTAG(), "onReceivedError.failingUrl" + failingUrl);
                     simulationListener.onError(failingUrl);
+                    isFinish = true;
+                } else {
+                    //
                 }
             }
         });
@@ -305,7 +311,7 @@ public class TouchWebView extends WebView implements ILog {
         return "TouchWebView";
     }
 
-    public void setPackageName(String packageName) {
+    public void setCurrentPackageName(String packageName) {
         this.packageName = packageName;
     }
 
@@ -325,9 +331,13 @@ public class TouchWebView extends WebView implements ILog {
      * @param url
      */
     private void loadURLInner(String url) {
-        Map<String, String> headerMap = new HashMap<>();
-        headerMap.put("X-Requested-With", packageName);
-        loadUrl(url, headerMap);
+        if (TextUtils.isEmpty(packageName)) {
+            loadUrl(url);
+        } else {
+            Map<String, String> headerMap = new HashMap<>();
+            headerMap.put("X-Requested-With", packageName);
+            loadUrl(url, headerMap);
+        }
     }
 
     public void loadJs(String js) {

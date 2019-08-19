@@ -1,11 +1,15 @@
 package moziqi.interviewdemo.bingsearh;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,6 +18,7 @@ import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import moziqi.interviewdemo.MeApp;
 import moziqi.interviewdemo.R;
 import moziqi.interviewdemo.util.TouchUtils;
 import moziqi.interviewdemo.webview.TouchWebView;
@@ -52,8 +57,10 @@ public class BingSearchActivity extends AppCompatActivity {
 
         touchWebView = findViewById(R.id.touchWebView);
 
-        touchWebView.setPackageName("com.game.fire");
-        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.game.fire");
+        WebviewSettingProxy.setProxy(touchWebView, "118.163.26.248", 60636, MeApp.class.getName());
+        //不hook
+//        touchWebView.setPackageName("com.game.fire");
+//        WebViewCompat.handleLoadUrlPackageName(touchWebView, "com.game.fire");
 
         webViewUrl = findViewById(R.id.webViewUrl);
 
@@ -63,7 +70,7 @@ public class BingSearchActivity extends AppCompatActivity {
         webViewHelper = new WebViewHelper(touchWebView);
 
         BlockingQueue<WebViewHelper.WebData> webData = new ArrayBlockingQueue<>(3);
-        //String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))
+//        String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))
         webData.add(webViewHelper.createWebData(0, String.format(BING, "我是地球人"), Arrays.asList(
                 webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
                 webViewHelper.createJsObj("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", 15000, WebViewHelper.JsObj.JS_TYPE_RANDOM),
@@ -84,35 +91,68 @@ public class BingSearchActivity extends AppCompatActivity {
         etKey = findViewById(R.id.etKey);
         btnSearch = findViewById(R.id.btnSearch);
 
+        etKey.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    //点击搜索的时候隐藏软键盘
+
+                    touchWebView.loadURL(String.format(BING, etKey.getText().toString()));
+                    hideKeyboard(etKey);
+                    // 在这里写搜索的操作,一般都是网络请求数据
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                BlockingQueue<WebViewHelper.WebData> webData = new ArrayBlockingQueue<>(3);
-                webData.add(webViewHelper.createWebData(0, String.format(BING, "我是红色人"), Arrays.asList(
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
-                )));
-                webData.add(webViewHelper.createWebData(1, String.format(BING, "我是蓝色人"), Arrays.asList(
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
-                )));
-                webData.add(webViewHelper.createWebData(0, String.format(BING, "我是绿色人"), Arrays.asList(
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
-                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
-                )));
-                webViewHelper.setData(webData).start();
+
+                touchWebView.loadURL(String.format(BING, etKey.getText().toString()));
+                hideKeyboard(etKey);
+
+//                BlockingQueue<WebViewHelper.WebData> webData = new ArrayBlockingQueue<>(3);
+//                webData.add(webViewHelper.createWebData(0, String.format(BING, "我是红色人"), Arrays.asList(
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+//                )));
+//                webData.add(webViewHelper.createWebData(1, String.format(BING, "我是蓝色人"), Arrays.asList(
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+//                )));
+//                webData.add(webViewHelper.createWebData(0, String.format(BING, "我是绿色人"), Arrays.asList(
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5))),
+//                        webViewHelper.createJsObj(String.format("javascript:document.getElementsByClassName('b_algoheader')[%d].getElementsByTagName('a')[0].click();", webViewHelper.getRandom(5)))
+//                )));
+//                webViewHelper.setData(webData).start();
             }
         });
 
         findViewById(R.id.btnShouldInterceptRequest).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                touchWebView.setShouldInterceptRequest(!touchWebView.isShouldInterceptRequest());
+//                touchWebView.setShouldInterceptRequest(!touchWebView.isShouldInterceptRequest());
             }
         });
+    }
+
+
+    /**
+     * 隐藏软键盘
+     *
+     * @param view :一般为EditText
+     */
+    public void hideKeyboard(View view) {
+        InputMethodManager manager = (InputMethodManager) view.getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 
@@ -199,6 +239,7 @@ public class BingSearchActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        WebviewSettingProxy.revertBackProxy(touchWebView, MeApp.class.getName());
         webViewHelper.onDestroy();
         touchWebView = null;
         super.onDestroy();

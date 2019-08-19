@@ -1,7 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    signingConfigs {
+        android {
+            keyAlias '77777777.jks'
+            keyPassword '77777777.jks'
+            storeFile file('../keystore/77777777.jks')
+            storePassword '77777777.jks'
+        }
+    }
+
     compileSdkVersion 27
+
     defaultConfig {
         applicationId "moziqi.aaa"
         minSdkVersion 14
@@ -10,13 +21,38 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+
+    //gradlew assembleRelease
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles 'proguard-project.txt'
+            signingConfig signingConfigs.android
+            zipAlignEnabled true
+//            shrinkResources true
+        }
+        debug {
+            signingConfig signingConfigs.android
+        }
+    }
+
+    applicationVariants.all { variant ->
+
+        variant.outputs.all {
+            outputFileName = "interview-" +
+                    "${defaultConfig.versionName}-" +
+                    "${defaultConfig.versionCode}-" +
+                    "${releaseTime()}-" +
+                    "${variant.buildType.name}.apk"
         }
     }
 }
+
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd-HH")
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

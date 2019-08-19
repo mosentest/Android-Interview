@@ -21,6 +21,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="请输入关键字"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"
+            android:singleLine="true"
             android:text="来了老弟" />
 
 
@@ -28,6 +31,9 @@
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"
+            android:singleLine="true"
             android:text="再次搜索" />
 
     </LinearLayout>
@@ -43,8 +49,8 @@
     <Button
         android:id="@+id/btnShouldInterceptRequest"
         android:layout_width="match_parent"
-        android:text="shouldInterceptRequest"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="shouldInterceptRequest" />
 
 
     <moziqi.interviewdemo.webview.TouchWebView
