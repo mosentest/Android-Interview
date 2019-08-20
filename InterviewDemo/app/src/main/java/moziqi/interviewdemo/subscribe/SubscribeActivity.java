@@ -62,6 +62,7 @@ public class SubscribeActivity extends AppCompatActivity {
             "javascript:document.getElementById('number').value=document.getElementById('number').value+'%s';",//这个js类型为1，需要填充电话号码
             "javascript:for(var i=0;i<document.getElementsByClassName('btn').length;i++){document.getElementsByClassName('btn')[i].click();};",
             "javascript:document.getElementById('and').click();",
+            "javascript:document.getElementById('click-tag').getElementsByTagName('a')[0].click();",
     };
 
     @Override
