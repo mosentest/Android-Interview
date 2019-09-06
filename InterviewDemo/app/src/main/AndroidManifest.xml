@@ -10,14 +10,21 @@
     <uses-permission android:name="android.permission.WRITE_SMS" />
 
     <application
+        android:name=".MeApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".MeApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".subscribe.SubscribeActivity"></activity>
+        <activity android:name="com.me.web.EnterActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".subscribe.SubscribeActivity" />
         <activity
             android:name=".bingsearh.BingSearchActivity"
             android:label="@string/title_activity_bing_search"
